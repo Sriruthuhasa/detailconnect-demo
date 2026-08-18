@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detail Connect — Mobile Detailing</title>
+<style>
+  :root{ --blue:#1a4fd6; --blue-2:#2f6bff; --sky:#0aa2e6; --ink:#0a1224; --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:#05070d;color:#fff;font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+  /* fixed video stage */
+  .stage{position:fixed;inset:0;z-index:1;background:#05070d;overflow:hidden}
+  #vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.05) contrast(1.03)}
+  /* legibility scrims (kept light / transparent) */
+  .scrim{position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(180deg, rgba(4,8,20,.42) 0%, rgba(4,8,20,0) 26%),
+      linear-gradient(0deg, rgba(4,8,20,.55) 0%, rgba(4,8,20,0) 34%),
+      radial-gradient(120% 90% at 50% 60%, rgba(4,8,20,0) 55%, rgba(4,8,20,.35) 100%);}
+  .loading{position:absolute;inset:0;display:grid;place-items:center;z-index:3;background:#05070d;transition:opacity .6s;color:#9fb4d6;font-size:13px;letter-spacing:.16em;text-transform:uppercase}
+  .loading.gone{opacity:0;pointer-events:none}
+  .spin{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:var(--sky);animation:sp 1s linear infinite;margin:0 auto 14px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* progress bar */
+  .pbar{position:fixed;left:0;top:0;height:3px;width:0;background:linear-gradient(90deg,var(--sky),var(--blue-2));z-index:6}
+
+  /* HUD */
+  .hud{position:fixed;z-index:5;inset:0;pointer-events:none}
+  .brand{position:absolute;left:26px;top:20px;display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.02em;pointer-events:auto;text-shadow:0 2px 14px rgba(0,10,40,.6)}
+  .brand svg{width:26px;height:26px}
+  .cta-top{position:absolute;right:26px;top:16px;pointer-events:auto;display:inline-flex;gap:8px;align-items:center;background:rgba(26,79,214,.92);color:#fff;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 10px 30px -10px rgba(0,10,40,.7);transition:transform .15s}
+  .cta-top:hover{transform:translateY(-2px)}
+
+  /* captions — transparent, text only with soft shadow */
+  .caps{position:fixed;left:0;right:0;bottom:9vh;z-index:5;pointer-events:none;padding:0 26px}
+  .cap{position:absolute;left:26px;right:26px;max-width:640px;opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;text-shadow:0 2px 26px rgba(0,8,30,.8),0 1px 3px rgba(0,8,30,.6)}
+  .cap.in{opacity:1;transform:none}
+  .cap .step{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#bfe0ff;font-weight:800;margin-bottom:10px}
+  .cap h2{margin:0;font-size:clamp(28px,5vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+  .cap p{margin:12px 0 0;font-size:clamp(15px,2vw,18px);line-height:1.5;color:#eaf2ff;max-width:44ch}
+
+  /* final CTA */
+  .final{position:fixed;inset:0;z-index:5;display:grid;place-items:center;text-align:center;opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;pointer-events:none;padding:26px}
+  .final.in{opacity:1;transform:none;pointer-events:auto}
+  .final .inner{max-width:600px;text-shadow:0 2px 26px rgba(0,8,30,.85)}
+  .final h2{font-size:clamp(30px,6vw,58px);font-weight:800;letter-spacing:-.03em;margin:0}
+  .final p{font-size:clamp(15px,2.2vw,19px);color:#eaf2ff;margin:14px auto 0;max-width:40ch}
+  .stores{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+  .store{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#0a1224;border-radius:13px;padding:11px 18px;text-decoration:none;font-weight:700;box-shadow:0 16px 40px -16px rgba(0,8,30,.8);transition:transform .15s;text-shadow:none}
+  .store:hover{transform:translateY(-2px)}
+  .store small{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5c667d;font-weight:600}
+  .store svg{width:22px;height:22px}
+
+  .cue{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:5;color:#fff;font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.9;text-align:center;text-shadow:0 2px 10px rgba(0,8,30,.7);transition:opacity .4s}
+  .cue .m{display:block;margin:8px auto 0;width:22px;height:34px;border:2px solid rgba(255,255,255,.85);border-radius:12px;position:relative}
+  .cue .m::after{content:"";position:absolute;left:50%;top:6px;transform:translateX(-50%);width:3px;height:7px;border-radius:2px;background:#fff;animation:wh 1.4s ease-in-out infinite}
+  @keyframes wh{50%{transform:translate(-50%,10px);opacity:.4}}
+
+  .spacer{position:relative;z-index:0;height:600vh}
+  @media(prefers-reduced-motion:reduce){.spin{animation:none}.cue .m::after{animation:none}}
+</style>
+</head>
+<body>
+
+<div class="pbar" id="pbar"></div>
+
+<div class="stage">
+  <video id="vid" muted playsinline webkit-playsinline preload="auto"
+    src="https://videos.pexels.com/video-files/4849132/4849132-sd_960_540_24fps.mp4"></video>
+  <div class="scrim"></div>
+  <div class="loading" id="loading"><div><div class="spin"></div>Loading the detail…</div></div>
+</div>
+
+<div class="hud">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 4C13 12 8 18 8 25a12 12 0 0 0 24 0c0-7-5-13-12-21Z" fill="url(#g1)"/><path d="M14 26a6 6 0 0 0 6 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><defs><linearGradient id="g1" x1="8" y1="4" x2="32" y2="37" gradientUnits="userSpaceOnUse"><stop stop-color="#4f80ff"/><stop offset="1" stop-color="#1a4fd6"/></linearGradient></defs></svg>
+    Detail Connect
+  </div>
+  <a class="cta-top" href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener">Get the app ↗</a>
+</div>
+
+<div class="caps" id="caps">
+  <div class="cap" data-a="0.00" data-b="0.14">
+    <div class="step">Mobile detailing</div>
+    <h2>The detail shop that comes to you.</h2>
+    <p>Book in seconds. A verified pro drives to your home and details your car in your own driveway.</p>
+  </div>
+  <div class="cap" data-a="0.16" data-b="0.36">
+    <div class="step">01 — Booked &amp; on the way</div>
+    <h2>A verified detailer, right on time.</h2>
+    <p>Live scheduling and automatic reminders mean your pro shows up exactly when booked.</p>
+  </div>
+  <div class="cap" data-a="0.38" data-b="0.60">
+    <div class="step">02 — The wash</div>
+    <h2>Hand-washed, the right way.</h2>
+    <p>Real foam, a soft mitt, and a professional who does this every day — not a tunnel car wash.</p>
+  </div>
+  <div class="cap" data-a="0.62" data-b="0.84">
+    <div class="step">03 — Every detail</div>
+    <h2>Every panel, inside and out.</h2>
+    <p>Interior, exterior, ceramic protection — the full treatment, done in your driveway.</p>
+  </div>
+</div>
+
+<div class="final" id="final" data-a="0.86" data-b="1.01">
+  <div class="inner">
+    <div class="cap step" style="opacity:1;transform:none;color:#bfe0ff;margin-bottom:10px">Done &amp; booked</div>
+    <h2>A showroom finish, in your driveway.</h2>
+    <p>Join the fastest-growing app for mobile detailing. Veteran-owned and detailer-built.</p>
+    <div class="stores">
+      <a class="store" href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#0a1224"><path d="M16.4 12.7c0-2 1.6-3 1.7-3-.9-1.4-2.4-1.5-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.6-.7-1.3 0-2.6.8-3.2 2-1.4 2.4-.4 6 1 8 .7 1 1.4 2 2.4 2 1 0 1.3-.6 2.5-.6s1.5.6 2.5.6 1.7-1 2.3-2c.7-1.1 1-2.2 1-2.3-.1 0-2.2-.9-2.2-3.2ZM14.5 6.3c.5-.7.9-1.6.8-2.5-.8 0-1.7.5-2.3 1.2-.5.6-.9 1.5-.8 2.4.9.1 1.8-.4 2.3-1.1Z"/></svg><span><small>Download on the</small>App Store</span></a>
+      <a class="store" href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M4 3.5v17l10-8.5-10-8.5Z" fill="#1a4fd6"/><path d="M4 3.5 14 12l3-2.5L5.5 2.8A1.5 1.5 0 0 0 4 3.5Z" fill="#0aa2e6"/><path d="m4 20.5 10-8.5 3 2.5-11.5 6.7a1.5 1.5 0 0 1-1.5-.7Z" fill="#2f6bff"/></svg><span><small>Get it on</small>Google Play</span></a>
+    </div>
+  </div>
+</div>
+
+<div class="cue" id="cue">Scroll to detail<span class="m"></span></div>
+
+<div class="spacer"></div>
+
+<script>
+(function(){
+  const v=document.getElementById('vid'), pbar=document.getElementById('pbar'),
+        loading=document.getElementById('loading'), cue=document.getElementById('cue'),
+        caps=[...document.querySelectorAll('.cap[data-a]')], finalEl=document.getElementById('final');
+  const clamp=(x,a=0,b=1)=>x<a?a:x>b?b:x;
+  const coarse=matchMedia('(pointer:coarse)').matches;
+  let dur=0, ready=false, target=0, cur=0, scrubbing=!coarse;
+
+  function progress(){ const max=document.documentElement.scrollHeight-innerHeight; return max>0?clamp(scrollY/max):0; }
+  addEventListener('scroll',()=>{ target=progress(); if(target>0.02) cue.style.opacity=0; },{passive:true});
+
+  function markReady(){ if(ready) return; ready=true; loading.classList.add('gone');
+    if(scrubbing){ try{v.pause();}catch(e){} }
+  }
+  v.addEventListener('loadedmetadata',()=>{ dur=v.duration||0; });
+  v.addEventListener('loadeddata', markReady);
+  v.addEventListener('canplay', markReady);
+
+  if(coarse){ v.loop=true; v.muted=true; v.setAttribute('autoplay',''); const p=v.play(); if(p&&p.catch)p.catch(()=>{}); }
+  else {
+    const prime=v.play(); if(prime&&prime.then){ prime.then(()=>{ setTimeout(()=>{try{v.pause();}catch(e){}},60); }).catch(()=>{}); }
+  }
+
+  function updateCaps(p){
+    caps.forEach(c=>c.classList.toggle('in', p>=+c.dataset.a && p<=+c.dataset.b));
+    finalEl.classList.toggle('in', p>=+finalEl.dataset.a);
+  }
+
+  function loop(){
+    if(ready){
+      cur += (target-cur)*0.12;
+      if(Math.abs(target-cur)<0.0004) cur=target;
+      if(scrubbing && dur>0){
+        const t=clamp(cur)*(dur-0.06);
+        if(Math.abs(v.currentTime-t)>0.015){ try{ v.currentTime=t; }catch(e){} }
+      }
+    }
+    const p=progress();
+    updateCaps(p);
+    pbar.style.width=(p*100)+'%';
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  let lastCT=-1, stuck=0;
+  setInterval(()=>{
+    if(!ready||!scrubbing||dur<=0) return;
+    if(target>0.05){
+      const wanted=clamp(cur)*(dur-0.06);
+      if(Math.abs(v.currentTime-lastCT)<0.001 && Math.abs(wanted-v.currentTime)>0.3) stuck++; else stuck=0;
+      lastCT=v.currentTime;
+      if(stuck>=3){ scrubbing=false; v.loop=true; v.muted=true; const p=v.play(); if(p&&p.catch)p.catch(()=>{}); }
+    }
+  },500);
+
+  setTimeout(markReady,4000);
+})();
+</script>
+</body>
+</html>
