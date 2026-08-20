@@ -17,6 +17,10 @@
   .brand .drop{width:26px;height:26px}
   .cta-top{pointer-events:auto;display:inline-flex;gap:8px;align-items:center;background:var(--blue);color:#fff;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 10px 24px -10px rgba(22,76,211,.8);transition:transform .15s}
   .cta-top:hover{transform:translateY(-2px)}
+  .topnav{display:flex;gap:18px;align-items:center;pointer-events:auto}
+  .topnav a{color:rgba(255,255,255,.85);font-size:13.5px;font-weight:600;white-space:nowrap;text-shadow:0 1px 8px rgba(0,20,60,.55);transition:color .15s}
+  .topnav a:hover{color:#fff}
+  @media(max-width:1000px){.topnav{display:none}}
   .pbar{position:fixed;left:0;top:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue-2));z-index:6;width:0}
   .scrollcue{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:5;color:#fff;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.9;text-align:center;text-shadow:0 1px 8px rgba(0,20,60,.5);transition:opacity .4s}
   .scrollcue .m{display:block;margin:6px auto 0;width:22px;height:34px;border:2px solid rgba(255,255,255,.8);border-radius:12px;position:relative}
@@ -63,6 +67,9 @@
     <svg class="drop" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 4C13 12 8 18 8 25a12 12 0 0 0 24 0c0-7-5-13-12-21Z" fill="url(#g1)"/><path d="M14 26a6 6 0 0 0 6 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><defs><linearGradient id="g1" x1="8" y1="4" x2="32" y2="37" gradientUnits="userSpaceOnUse"><stop stop-color="#4f80ff"/><stop offset="1" stop-color="#1a4fd6"/></linearGradient></defs></svg>
     Detail Connect
   </div>
+  <nav class="topnav">
+    <a href="../#blogs">Blogs</a><a href="../#pricing">Pricing</a><a href="../#features">Features</a><a href="../#about">About us</a><a href="../#cases">Case Studies</a><a href="../#faq">FAQ</a><a href="../#reviews">Reviews</a>
+  </nav>
   <a class="cta-top" href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener">Get the app ↗</a>
 </div>
 
