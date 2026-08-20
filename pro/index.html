@@ -1,0 +1,958 @@
+<title>Detail Connect</title>
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f5f7fd; --stage:#eef3ff; --card:#ffffff;
+    --ink:#0a1224; --ink-2:#28324a; --sub:#586179; --faint:#8b94ad;
+    --line:#e6eaf5; --line-2:#f0f3fb;
+    --blue:#1a4fd6; --blue-2:#2f6bff; --sky:#0aa2e6; --navy:#061640; --teal:#00b892; --amber:#f2a93b;
+    --blue-soft:#eaf0ff;
+    --shadow-sm:0 1px 2px rgba(8,22,64,.05),0 10px 26px -14px rgba(8,22,64,.20);
+    --shadow:0 34px 80px -38px rgba(8,22,64,.45);
+    --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --maxw:1160px; --nav-h:66px;
+  }
+  :root[data-theme="dark"]{
+    --bg:#070d1c; --bg-soft:#0c1428; --stage:#0f1c3a; --card:#0e1830;
+    --ink:#eef2fb; --ink-2:#c7cfe2; --sub:#9aa6c2; --faint:#6b7592;
+    --line:#1d2949; --line-2:#151f3a;
+    --blue:#5a85ff; --blue-2:#7a9cff; --sky:#38b6f0; --navy:#cdd9ff; --teal:#22d6b0; --amber:#f2b95b;
+    --blue-soft:#152244; --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow:0 34px 80px -38px rgba(0,0,0,.8);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:16.5px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  h1,h2,h3{margin:0;letter-spacing:-.03em;text-wrap:balance;line-height:1.08;font-weight:800}
+  .eyebrow{font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--blue);font-weight:800}
+  :focus-visible{outline:2.5px solid var(--blue);outline-offset:3px;border-radius:8px}
+  button{font-family:inherit;cursor:pointer}
+  section{scroll-margin-top:calc(var(--nav-h) + 12px)}
+
+  /* NAV */
+  header{position:sticky;top:0;z-index:70;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid var(--line)}
+  nav{display:flex;align-items:center;height:var(--nav-h);gap:26px}
+  .brand{display:flex;align-items:center}
+  .brand img{height:26px;width:auto}
+  :root[data-theme="dark"] .brand img{filter:brightness(0) invert(1)}
+  .navlinks{display:flex;gap:24px;margin-left:8px}
+  .navlinks a{font-size:14.5px;font-weight:550;color:var(--sub);transition:color .15s;position:relative}
+  .navlinks a:hover,.navlinks a.active{color:var(--ink)}
+  .navlinks a.active::after{content:"";position:absolute;left:0;right:0;bottom:-22px;height:2px;background:var(--blue);border-radius:2px}
+  .navsp{flex:1}
+  .iconbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;color:var(--ink)}
+  .iconbtn:hover{border-color:var(--blue)}
+  .iconbtn svg{width:18px;height:18px}
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:11px;padding:10px 17px;font-weight:700;font-size:14.5px;border:1px solid transparent;transition:transform .15s,background .2s,border-color .2s}
+  .btn-solid{background:var(--blue);color:#fff;box-shadow:0 10px 22px -12px rgba(22,76,211,.8)}
+  .btn-solid:hover{transform:translateY(-2px);background:var(--blue-2)}
+  .btn-line{border-color:var(--line);color:var(--ink);background:var(--card)}
+  .btn-line:hover{border-color:var(--blue)}
+  .hamb{display:none}
+  @media(max-width:900px){
+    .navlinks{position:fixed;inset:var(--nav-h) 0 auto 0;flex-direction:column;gap:0;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 24px 18px;transform:translateY(-120%);transition:transform .3s;box-shadow:var(--shadow)}
+    .navlinks.open{transform:none}
+    .navlinks a{padding:13px 0;border-bottom:1px solid var(--line-2);font-size:16px}
+    .navlinks a.active::after{display:none}
+    .hamb{display:grid}
+    .nav-signin{display:none}
+  }
+
+  /* HERO */
+  .hero{padding:64px 0 30px;position:relative;overflow:hidden}
+  .hero .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+  .hpill{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:650;color:var(--sub);background:var(--bg-soft);border:1px solid var(--line);border-radius:999px;padding:7px 14px}
+  .hpill .star{color:var(--amber);letter-spacing:1px}
+  .hero h1{font-size:clamp(38px,5.4vw,62px);margin:22px 0 0;max-width:15ch}
+  .hero h1 span{background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .lede{font-size:18.5px;color:var(--sub);max-width:46ch;margin:20px 0 26px}
+  .stores{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .stores a{transition:transform .15s}.stores a:hover{transform:translateY(-2px)}
+  .stores img{height:48px;width:auto}
+  .hero .micro{color:var(--faint);font-size:13px;margin-top:14px}
+  .device-wrap{position:relative;display:flex;justify-content:center}
+  .device-wrap .glow{position:absolute;width:78%;height:80%;top:8%;border-radius:40px;background:radial-gradient(circle at 50% 40%,var(--blue-soft),transparent 68%);z-index:0}
+  .device-wrap img{position:relative;z-index:1;width:min(300px,74%);filter:drop-shadow(0 40px 60px rgba(8,22,64,.32));animation:float 6s ease-in-out infinite}
+  @keyframes float{50%{transform:translateY(-14px)}}
+  @media(prefers-reduced-motion:reduce){.device-wrap img{animation:none}}
+  @media(max-width:900px){.hero .grid{grid-template-columns:1fr;gap:34px}.device-wrap{order:-1}}
+
+  /* trust bar */
+  .trust{border-block:1px solid var(--line);background:var(--bg-soft)}
+  .trust .row{display:grid;grid-template-columns:repeat(4,1fr)}
+  .trust .cell{padding:22px 18px;border-left:1px solid var(--line);text-align:center}
+  .trust .cell:first-child{border-left:0}
+  .trust b{font-size:22px;font-weight:800;display:block}
+  .trust b .u{color:var(--blue)}
+  .trust small{color:var(--sub);font-size:13px}
+  @media(max-width:640px){.trust .row{grid-template-columns:1fr 1fr}.trust .cell:nth-child(3){border-left:0}}
+
+  section.blk{padding:88px 0}
+  .head{max-width:640px;margin:0 auto 46px;text-align:center}
+  .head h2{font-size:clamp(28px,4.2vw,44px);margin-top:12px}
+  .head p{color:var(--sub);font-size:18px;margin-top:14px}
+
+  /* TABS */
+  .tabbar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:34px}
+  .tab{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:10px 18px;font-weight:650;font-size:14.5px;color:var(--sub);transition:all .18s}
+  .tab[aria-selected="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .tabpanels{position:relative}
+  .panel{display:none;grid-template-columns:1fr 1fr;gap:52px;align-items:center;animation:fade .4s ease}
+  .panel[data-active]{display:grid}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .panel h3{font-size:clamp(24px,3.2vw,34px)}
+  .panel p{color:var(--sub);font-size:17px;margin:14px 0 0;max-width:44ch}
+  .panel ul{list-style:none;padding:0;margin:20px 0 0;display:flex;flex-direction:column;gap:12px}
+  .panel li{display:flex;gap:11px;color:var(--ink-2);font-size:15.5px}
+  .chk{flex:none;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;margin-top:1px}
+  .chk svg{width:12px;height:12px}
+  .panel .shot{position:relative;display:flex;justify-content:center}
+  .panel .shot .st{position:absolute;width:76%;height:78%;top:8%;border-radius:34px;background:radial-gradient(circle at 50% 40%,var(--stage),transparent 70%)}
+  .panel .shot img{position:relative;z-index:1;width:min(270px,72%);filter:drop-shadow(0 30px 50px rgba(8,22,64,.3))}
+  @media(max-width:860px){.panel{grid-template-columns:1fr;gap:28px}.panel .shot{order:-1}}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow-sm)}
+  .step .n{width:40px;height:40px;border-radius:12px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-weight:800}
+  .step h3{font-size:19px;margin:16px 0 8px}
+  .step p{color:var(--sub);font-size:14.5px}
+  @media(max-width:800px){.steps{grid-template-columns:1fr}}
+
+  /* plans */
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:820px;margin:0 auto}
+  .plan{border:1px solid var(--line);border-radius:20px;padding:30px;background:var(--card);box-shadow:var(--shadow-sm)}
+  .plan.featured{border-color:var(--blue);box-shadow:var(--shadow);position:relative}
+  .plan.featured .badge{position:absolute;top:-12px;right:22px;background:var(--blue);color:#fff;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:999px}
+  .plan h3{font-size:20px}
+  .plan .price{font-size:34px;font-weight:800;margin:12px 0 2px;letter-spacing:-.03em}
+  .plan .price small{font-size:14px;color:var(--faint);font-weight:600}
+  .plan ul{list-style:none;padding:0;margin:18px 0 22px;display:flex;flex-direction:column;gap:11px}
+  .plan li{display:flex;gap:10px;color:var(--ink-2);font-size:14.5px}
+  .plan li .chk{width:20px;height:20px}
+  .plan .muted{color:var(--faint)}
+  @media(max-width:720px){.plans{grid-template-columns:1fr}}
+
+  /* carousel */
+  .carousel{max-width:760px;margin:0 auto;position:relative}
+  .track-vp{overflow:hidden;border-radius:22px}
+  .track{display:flex;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+  .slide{min-width:100%;padding:44px;background:var(--card);border:1px solid var(--line)}
+  .slide .stars{color:var(--amber);letter-spacing:2px;font-size:17px}
+  .slide blockquote{margin:14px 0 0;font-size:clamp(18px,2.4vw,24px);font-weight:600;line-height:1.4;letter-spacing:-.01em}
+  .slide .who{margin-top:18px;display:flex;align-items:center;gap:12px}
+  .slide .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(140deg,var(--blue-2),var(--blue));color:#fff;display:grid;place-items:center;font-weight:800}
+  .slide .who b{display:block}.slide .who small{color:var(--sub)}
+  .cnav{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:22px}
+  .dots{display:flex;gap:8px}
+  .dot{width:9px;height:9px;border-radius:50%;border:0;background:var(--line);padding:0}
+  .dot[aria-current="true"]{background:var(--blue);width:22px;border-radius:5px;transition:all .2s}
+  .arrow{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;color:var(--ink)}
+  .arrow:hover{border-color:var(--blue);color:var(--blue)}
+
+  /* FAQ */
+  .faq{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+  .qa{border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+  .qa summary{list-style:none;cursor:pointer;padding:18px 20px;font-size:16.5px;font-weight:650;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .qa summary::-webkit-details-marker{display:none}
+  .qa .ic{flex:none;width:24px;height:24px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;transition:transform .25s;font-weight:800}
+  .qa[open] .ic{transform:rotate(45deg)}
+  .qa .ans{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .qa .ans p{margin:0;padding:0 20px 20px;color:var(--sub);font-size:15px}
+
+  /* contact form */
+  .contact{display:grid;grid-template-columns:.9fr 1.1fr;gap:44px;align-items:start;background:var(--bg-soft);border:1px solid var(--line);border-radius:26px;padding:40px}
+  .contact h2{font-size:clamp(26px,3.4vw,36px)}
+  .contact p{color:var(--sub);font-size:16px;margin-top:12px}
+  .contact .info{margin-top:22px;display:flex;flex-direction:column;gap:12px}
+  .contact .info a{display:flex;align-items:center;gap:11px;color:var(--ink-2);font-size:15px}
+  .contact .info .ic{width:36px;height:36px;border-radius:10px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center}
+  form .field{margin-bottom:14px}
+  form label{display:block;font-size:13px;font-weight:650;margin-bottom:6px;color:var(--ink-2)}
+  form input,form textarea,form select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--ink);font:inherit;font-size:15px;transition:border-color .15s}
+  form input:focus,form textarea:focus,form select:focus{outline:none;border-color:var(--blue)}
+  form .err{color:#e5484d;font-size:12.5px;margin-top:5px;display:none}
+  form .field.invalid input,form .field.invalid textarea{border-color:#e5484d}
+  form .field.invalid .err{display:block}
+  .formmsg{display:none;margin-top:8px;padding:13px 15px;border-radius:12px;background:color-mix(in srgb,var(--teal) 16%,transparent);color:var(--teal);font-weight:650;font-size:14.5px}
+  .formmsg.show{display:block}
+  @media(max-width:800px){.contact{grid-template-columns:1fr;padding:26px}}
+
+  /* final + footer */
+  .final{background:linear-gradient(135deg,var(--blue),var(--blue-2));border-radius:26px;padding:60px 40px;text-align:center;color:#fff;position:relative;overflow:hidden}
+  .final h2{color:#fff;font-size:clamp(28px,4.4vw,46px)}
+  .final p{color:#dbe7ff;font-size:17px;max-width:42ch;margin:14px auto 26px}
+  .final .stores{justify-content:center}
+  footer{padding:44px 0 30px;color:var(--sub);font-size:13.5px}
+  .foot-top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:24px;padding-bottom:28px;border-bottom:1px solid var(--line)}
+  .foot-top h4{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:0 0 12px}
+  .foot-top a{display:block;padding:5px 0;color:var(--ink-2);font-size:14px}
+  .foot-top a:hover{color:var(--blue)}
+  .foot-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:20px}
+  @media(max-width:760px){.foot-top{grid-template-columns:1fr 1fr}}
+
+  /* back to top */
+  .totop{position:fixed;right:22px;bottom:22px;z-index:60;width:46px;height:46px;border-radius:50%;border:0;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:var(--shadow);opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .3s,transform .3s}
+  .totop.show{opacity:1;transform:none;pointer-events:auto}
+
+  /* DEMO walkthrough */
+  .demo{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+  .demo-stage{position:relative;display:flex;justify-content:center}
+  .demo-stage .bgglow{position:absolute;width:82%;height:82%;top:6%;border-radius:44px;background:radial-gradient(circle at 50% 38%,var(--stage),transparent 70%)}
+  .phone{position:relative;width:min(300px,74%);aspect-ratio:.5;z-index:1}
+  .phone .screen{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:scale(1.02);transition:opacity .7s ease;filter:drop-shadow(0 34px 55px rgba(8,22,64,.32))}
+  .phone .screen.on{opacity:1;animation:kenburns 4s ease forwards}
+  @keyframes kenburns{from{transform:scale(1.02)}to{transform:scale(1.07)}}
+  .demo-steps{display:flex;flex-direction:column;gap:10px}
+  .dstep{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);transition:border-color .2s,box-shadow .2s}
+  .dstep.on{border-color:var(--blue);box-shadow:var(--shadow-sm)}
+  .dstep .dn{flex:none;width:28px;height:28px;border-radius:9px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-weight:800;font-size:14px}
+  .dstep.on .dn{background:var(--blue);color:#fff}
+  .dtext{display:flex;flex-direction:column;gap:2px;flex:1}
+  .dtext b{font-size:15.5px}.dtext small{color:var(--sub);font-size:13.5px}
+  .dprogress{display:none;height:3px;background:var(--line-2);border-radius:3px;margin-top:8px;overflow:hidden}
+  .dstep.on .dprogress{display:block}
+  .dbar{display:block;height:100%;width:0;background:var(--blue);border-radius:3px}
+  .demo-ctrl{display:flex;align-items:center;gap:12px;margin-top:16px}
+  @media(max-width:860px){.demo{grid-template-columns:1fr;gap:30px}.demo-stage{order:-1}}
+
+  /* ---- extra animations ---- */
+  .hero{position:relative}
+  .aurora{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+  .aurora span{position:absolute;border-radius:50%;filter:blur(66px);opacity:.42;will-change:transform}
+  .aurora .a1{width:440px;height:440px;background:#2f6bff;top:-90px;right:-40px;animation:drift 18s ease-in-out infinite}
+  .aurora .a2{width:380px;height:380px;background:#0aa2e6;bottom:-150px;left:-50px;animation:drift 22s ease-in-out infinite reverse}
+  .aurora .a3{width:300px;height:300px;background:#00b892;top:38%;left:40%;opacity:.28;animation:drift 27s ease-in-out infinite}
+  @keyframes drift{50%{transform:translate(34px,-28px) scale(1.14)}}
+  .hero .wrap{position:relative;z-index:1}
+  .col-anim>*{opacity:0;transform:translateY(18px);animation:heroIn .75s cubic-bezier(.2,.7,.2,1) forwards}
+  .col-anim>*:nth-child(1){animation-delay:.05s}.col-anim>*:nth-child(2){animation-delay:.15s}.col-anim>*:nth-child(3){animation-delay:.25s}.col-anim>*:nth-child(4){animation-delay:.35s}.col-anim>*:nth-child(5){animation-delay:.45s}.col-anim>*:nth-child(6){animation-delay:.55s}
+  @keyframes heroIn{to{opacity:1;transform:none}}
+  .hero h1 span{background:linear-gradient(120deg,var(--blue),var(--sky),var(--blue));background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 7s linear infinite}
+  @keyframes shimmer{to{background-position:220% center}}
+  .btn-solid{position:relative;overflow:hidden}
+  .btn-solid::after{content:"";position:absolute;top:0;left:-130%;width:55%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-18deg);pointer-events:none}
+  .btn-solid:hover::after{animation:sheen .75s ease}
+  @keyframes sheen{to{left:170%}}
+  .marquee{border-bottom:1px solid var(--line);background:var(--bg);overflow:hidden;padding:13px 0}
+  .mtrack{display:flex;white-space:nowrap;width:max-content;animation:marq 34s linear infinite;color:var(--faint);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:13px}
+  .mtrack span{padding:0 20px}
+  @keyframes marq{to{transform:translateX(-50%)}}
+  .marquee:hover .mtrack{animation-play-state:paused}
+  .steps.reveal .step,.plans.reveal .plan{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+  .steps.reveal.in .step,.plans.reveal.in .plan{opacity:1;transform:none}
+  .steps.reveal.in .step:nth-child(2),.plans.reveal.in .plan:nth-child(2){transition-delay:.12s}
+  .steps.reveal.in .step:nth-child(3){transition-delay:.24s}
+  .tilt{transition:transform .2s ease}
+  #confetti{position:fixed;inset:0;z-index:110;pointer-events:none}
+  @media(prefers-reduced-motion:reduce){
+    .aurora span,.hero h1 span,.mtrack,.btn-solid::after{animation:none!important}
+    .col-anim>*{opacity:1;transform:none;animation:none}
+    .steps.reveal .step,.plans.reveal .plan{opacity:1;transform:none;transition:none}
+  }
+
+  /* analytics dashboard */
+  .dash{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:var(--shadow-sm)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .kpi{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--bg-soft)}
+  .kpi small{color:var(--faint);font-size:12px}
+  .kpi .v{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+  .kpi .up{color:var(--teal);font-size:12px;font-weight:700}
+  .charts{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+  .chartcard{border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--card)}
+  .cctitle{font-size:13px;font-weight:700;color:var(--sub);margin-bottom:14px}
+  .bars{display:flex;align-items:flex-end;gap:10px;height:150px}
+  .bars .bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+  .bars .bar{width:100%;height:0;background:linear-gradient(180deg,var(--blue-2),var(--blue));border-radius:6px 6px 0 0;transition:height 1s cubic-bezier(.2,.7,.2,1)}
+  .bars .cap{font-size:10px;color:var(--faint)}
+  .spark{width:100%;height:150px}
+  .spark polyline{stroke-dasharray:600;stroke-dashoffset:600;transition:stroke-dashoffset 1.7s ease}
+  .dash.in .spark polyline{stroke-dashoffset:0}
+  @media(max-width:800px){.kpis{grid-template-columns:1fr 1fr}.charts{grid-template-columns:1fr}}
+  /* booking-link builder */
+  .build{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;background:var(--bg-soft);border:1px solid var(--line);border-radius:26px;padding:40px}
+  .build h2{font-size:clamp(26px,3.4vw,38px)}
+  .build p{color:var(--sub);margin-top:12px}
+  .build label{display:block;font-size:13px;font-weight:650;margin:22px 0 8px;color:var(--ink-2)}
+  .build input{width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:16px}
+  .build input:focus{outline:none;border-color:var(--blue)}
+  .urlpill{display:flex;align-items:center;gap:8px;margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--sub);flex-wrap:wrap}
+  .urlpill b{color:var(--blue);font-weight:700;word-break:break-all}
+  .urlpill button{margin-left:auto;border:1px solid var(--line);background:var(--bg-soft);border-radius:8px;padding:6px 12px;font-weight:650;font-size:12.5px;color:var(--ink);cursor:pointer}
+  .urlpill button:hover{border-color:var(--blue);color:var(--blue)}
+  .bpreview{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+  .bpreview .bhead{background:linear-gradient(135deg,var(--blue),var(--blue-2));padding:22px;color:#fff}
+  .bpreview .bhead .bt{font-weight:800;font-size:20px;letter-spacing:-.02em}
+  .bpreview .bhead small{opacity:.85}
+  .bpreview .bbody{padding:14px}
+  .bsvc{display:flex;justify-content:space-between;align-items:center;padding:11px 8px;border-bottom:1px solid var(--line-2);font-size:14px}
+  .bsvc:last-of-type{border-bottom:0}
+  .bsvc .p{font-weight:800}
+  .bpreview .bbtn{margin:12px 8px 4px;background:var(--blue);color:#fff;text-align:center;border-radius:12px;padding:12px;font-weight:700}
+  .bpreview .pw{text-align:center;color:var(--faint);font-size:11px;padding:10px}
+  @media(max-width:800px){.build{grid-template-columns:1fr;padding:26px}}
+  /* hero cursor spotlight */
+  .hero .spot{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(320px circle at var(--mx,50%) var(--my,28%),rgba(47,107,255,.16),transparent 62%);opacity:0;transition:opacity .35s}
+  .hero:hover .spot{opacity:1}
+  @media(prefers-reduced-motion:reduce){.bars .bar,.spark polyline{transition:none}.hero .spot{display:none}}
+
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s,transform .7s}
+  .reveal.in{opacity:1;transform:none}
+  /* directional image slide-ins */
+  .slide-r{opacity:0;transform:translateX(70px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+  .slide-l{opacity:0;transform:translateX(-70px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+  .slide-r.in,.slide-l.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.reveal,.slide-l,.slide-r{opacity:1;transform:none;transition:none}.device-wrap img{animation:none}}
+
+  /* scroll progress */
+  .scrollprog{position:fixed;top:0;left:0;height:3px;width:0;z-index:80;background:linear-gradient(90deg,var(--sky),var(--blue-2))}
+
+  /* calculator */
+  .calc{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;background:var(--bg-soft);border:1px solid var(--line);border-radius:26px;padding:40px}
+  .calc .ctrl{margin-bottom:22px}
+  .calc label{display:flex;justify-content:space-between;font-size:14px;font-weight:650;margin-bottom:10px;color:var(--ink-2)}
+  .calc label b{color:var(--blue);font-variant-numeric:tabular-nums}
+  .calc input[type=range]{width:100%;accent-color:var(--blue);height:6px}
+  .calc .sub{color:var(--faint);font-size:13px;margin-top:6px}
+  .calc .result{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:var(--shadow-sm)}
+  .calc .rlabel{color:var(--sub);font-size:13.5px;font-weight:650}
+  .calc .big{font-size:clamp(38px,6vw,58px);font-weight:800;letter-spacing:-.03em;background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums;line-height:1.05;margin-top:4px}
+  .calc .rrow{display:flex;gap:10px;margin-top:18px}
+  .calc .rcard{flex:1;background:var(--bg-soft);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+  .calc .rcard .n{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums}
+  .calc .rcard small{color:var(--faint);font-size:12px}
+  @media(max-width:800px){.calc{grid-template-columns:1fr;padding:26px}}
+
+  /* booking modal */
+  .modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px;background:rgba(4,10,28,.6);backdrop-filter:blur(4px)}
+  .modal.open{display:grid}
+  .sheet{width:min(460px,100%);background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;animation:pop .35s cubic-bezier(.2,.7,.2,1)}
+  @keyframes pop{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
+  .sheet .top{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .sheet .top b{font-size:16px;flex:1}
+  .sd-wrap{display:flex;gap:6px}
+  .sd{width:8px;height:8px;border-radius:50%;background:var(--line)}
+  .sd.on{background:var(--blue);width:20px;border-radius:4px;transition:all .2s}
+  .sheet .body{padding:20px;min-height:220px}
+  .mstep{display:none} .mstep.on{display:block;animation:fade .3s}
+  .opt{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,background .15s;width:100%;text-align:left;background:var(--card);color:var(--ink)}
+  .opt:hover{border-color:var(--blue)}
+  .opt.sel{border-color:var(--blue);background:var(--blue-soft)}
+  .opt .oc{flex:none;width:40px;height:40px;border-radius:11px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center}
+  .opt .oi{flex:1}.opt .oi b{display:block;font-size:15px}.opt .oi small{color:var(--sub);font-size:12.5px}
+  .opt .op{font-weight:800;font-variant-numeric:tabular-nums}
+  .mlabel{font-weight:650;font-size:14px;margin:0 0 10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip2{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 13px;font-size:13.5px;cursor:pointer;color:var(--ink)}
+  .chip2.sel{border-color:var(--blue);background:var(--blue);color:#fff}
+  .mfoot{display:flex;justify-content:space-between;gap:10px;padding:16px 20px;border-top:1px solid var(--line)}
+  .confirm{text-align:center;padding:10px 0}
+  .confirm .cring{width:64px;height:64px;border-radius:50%;background:color-mix(in srgb,var(--teal) 18%,transparent);color:var(--teal);display:grid;place-items:center;margin:0 auto 14px;font-size:30px}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:90;background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:12px;font-weight:650;font-size:14px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+
+<div class="scrollprog" id="scrollprog"></div>
+<header>
+  <div class="wrap"><nav>
+    <a class="brand" href="#top" aria-label="Detail Connect home"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/671a12872a8036f35a6425ac_image%203.webp" alt="Detail Connect"></a>
+    <div class="navlinks" id="navlinks">
+      <a href="../#blogs">Blogs</a><a href="#plans">Pricing</a><a href="#features">Features</a><a href="../#about">About us</a><a href="../#cases">Case Studies</a><a href="#faq">FAQ</a><a href="#reviews">Reviews</a>
+    </div>
+    <div class="navsp"></div>
+    <button class="iconbtn" id="themeBtn" aria-label="Toggle dark mode" title="Toggle theme">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <a href="#contact" class="btn btn-line nav-signin">Sign in</a>
+    <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-solid">Get the app</a>
+    <button class="iconbtn hamb" id="hambBtn" aria-label="Menu" aria-expanded="false">
+      <svg id="hambIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </nav></div>
+</header>
+
+<section class="hero" id="top">
+  <div class="aurora"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>
+  <div class="wrap grid">
+  <div class="col-anim">
+    <span class="hpill"><span class="star">★★★★★</span> Veteran-owned · #1 app for mobile detailers</span>
+    <h1>Run your detailing business <span>from your pocket</span>.</h1>
+    <p class="lede">Booking link, calendar, invoices, and revenue — the whole back office of a mobile detailing business in one app.</p>
+    <div class="stores">
+      <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" aria-label="Download on the App Store"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb25cd0f207d39678716d4_app-store.webp" alt="Download on the App Store"></a>
+      <a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener" aria-label="Get it on Google Play"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb24fde2ab979a9fb05c3e_google-play.webp" alt="Get it on Google Play"></a>
+    </div>
+    <div style="margin-top:14px"><a href="#demo" class="btn btn-line" style="gap:9px">▶ Watch how it works</a></div>
+    <div class="micro">Free to start · No card required · Set up in minutes</div>
+  </div>
+  <div class="device-wrap slide-r"><span class="glow"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp" alt="Detail Connect booking page on a phone"></div>
+</div></section>
+
+<div class="trust"><div class="wrap"><div class="row">
+  <div class="cell"><b><span class="u" id="stat800">800+</span></b><small>Five-star reviews</small></div>
+  <div class="cell"><b>24/7</b><small>Client self-booking</small></div>
+  <div class="cell"><b>1 app</b><small>For your whole business</small></div>
+  <div class="cell"><b>&lt;48h</b><small>Support response</small></div>
+</div></div></div>
+
+<div class="marquee" aria-hidden="true"><div class="mtrack">
+  <span>Interior Detail · Exterior Wash · Full Detail · Ceramic Coating · Paint Correction · Headlight Restoration · Engine Bay · Pet Hair Removal · Odor Removal · Wax &amp; Sealant · </span>
+  <span>Interior Detail · Exterior Wash · Full Detail · Ceramic Coating · Paint Correction · Headlight Restoration · Engine Bay · Pet Hair Removal · Odor Removal · Wax &amp; Sealant · </span>
+</div></div>
+
+<!-- FEATURE TABS -->
+<section class="blk" id="features"><div class="wrap">
+  <div class="head reveal">
+    <div class="eyebrow">Everything in one place</div>
+    <h2>Built to run a busy detailing business.</h2>
+    <p>Click through the tools your day runs on.</p>
+  </div>
+  <div class="tabbar" role="tablist" aria-label="Features">
+    <button class="tab" role="tab" aria-selected="true" data-tab="0">Booking link</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="1">Calendar</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="2">Services &amp; setup</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="3">Payments</button>
+  </div>
+  <div class="tabpanels">
+    <div class="panel" data-active role="tabpanel">
+      <div class="copy">
+        <h3>One link. Booked 24/7.</h3>
+        <p>Share a single booking link. Clients see your real availability, pick a service, and reserve themselves — day or night.</p>
+        <ul>
+          <li><span class="chk">✓</span>Custom booking page with your services</li>
+          <li><span class="chk">✓</span>Add-ons &amp; upsells at checkout</li>
+          <li><span class="chk">✓</span>Automatic confirmations &amp; reminders</li>
+        </ul>
+      </div>
+      <div class="shot"><span class="st"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp" alt="Booking page"></div>
+    </div>
+    <div class="panel" role="tabpanel">
+      <div class="copy">
+        <h3>Every job, color-coded.</h3>
+        <p>See the day's route, earnings, and drive times in one clean calendar, with automatic reminders so nothing slips.</p>
+        <ul>
+          <li><span class="chk">✓</span>Daily &amp; monthly totals, live</li>
+          <li><span class="chk">✓</span>Drive time between stops</li>
+          <li><span class="chk">✓</span>Never double-book</li>
+        </ul>
+      </div>
+      <div class="shot"><span class="st"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3e346565f5e9940becc3_phone-image-two.webp" alt="Calendar"></div>
+    </div>
+    <div class="panel" role="tabpanel">
+      <div class="copy">
+        <h3>Set services in seconds.</h3>
+        <p>Interior, exterior, full detail, ceramic — build packages with price ranges and durations, then let clients book them directly.</p>
+        <ul>
+          <li><span class="chk">✓</span>Flexible pricing &amp; add-ons</li>
+          <li><span class="chk">✓</span>A verified, professional profile</li>
+          <li><span class="chk">✓</span>Portfolio of your best work</li>
+        </ul>
+      </div>
+      <div class="shot"><span class="st"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp" alt="Services setup"></div>
+    </div>
+    <div class="panel" role="tabpanel">
+      <div class="copy">
+        <h3>Get paid &amp; track revenue.</h3>
+        <p>Send a clean invoice the moment you finish. Watch weekly earnings, tips, and booking rate climb — and let reports build themselves.</p>
+        <ul>
+          <li><span class="chk">✓</span>Instant, branded invoices</li>
+          <li><span class="chk">✓</span>Tips &amp; earnings tracking</li>
+          <li><span class="chk">✓</span>Reports ready for tax time</li>
+        </ul>
+      </div>
+      <div class="shot"><span class="st"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp" alt="Payments"></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- GROW / ANALYTICS DASHBOARD -->
+<section class="blk" id="grow" style="padding-top:0"><div class="wrap">
+  <div class="head reveal"><div class="eyebrow">Know your numbers</div><h2>Watch your business grow.</h2><p>Real-time earnings, bookings, and ratings — right in the app.</p></div>
+  <div class="dash reveal">
+    <div class="kpis">
+      <div class="kpi"><small>This week</small><div class="v" data-count="3240" data-prefix="$">$0</div><span class="up">▲ 18%</span></div>
+      <div class="kpi"><small>Bookings</small><div class="v" data-count="14">0</div><span class="up">▲ 4 new</span></div>
+      <div class="kpi"><small>Avg rating</small><div class="v" data-count="4.9" data-dec="1">0.0</div><span class="up">★★★★★</span></div>
+      <div class="kpi"><small>Profile visits</small><div class="v" data-count="327">0</div><span class="up">▲ 22%</span></div>
+    </div>
+    <div class="charts">
+      <div class="chartcard">
+        <div class="cctitle">Weekly earnings — last 8 weeks</div>
+        <div class="bars" id="growBars">
+          <div class="bcol"><div class="bar" data-h="42"></div><span class="cap">W1</span></div>
+          <div class="bcol"><div class="bar" data-h="55"></div><span class="cap">W2</span></div>
+          <div class="bcol"><div class="bar" data-h="49"></div><span class="cap">W3</span></div>
+          <div class="bcol"><div class="bar" data-h="68"></div><span class="cap">W4</span></div>
+          <div class="bcol"><div class="bar" data-h="61"></div><span class="cap">W5</span></div>
+          <div class="bcol"><div class="bar" data-h="82"></div><span class="cap">W6</span></div>
+          <div class="bcol"><div class="bar" data-h="74"></div><span class="cap">W7</span></div>
+          <div class="bcol"><div class="bar" data-h="96"></div><span class="cap">W8</span></div>
+        </div>
+      </div>
+      <div class="chartcard">
+        <div class="cctitle">Bookings trend</div>
+        <svg class="spark" viewBox="0 0 300 150" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points="0,120 43,104 86,110 129,80 171,88 214,54 257,64 300,26" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="300" cy="26" r="5" fill="var(--blue)"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- DEMO / VIDEO WALKTHROUGH -->
+<section class="blk" id="demo" style="padding-top:0"><div class="wrap">
+  <div class="head reveal"><div class="eyebrow">See it in action</div><h2>Watch how it works.</h2><p>An auto-playing walkthrough of the app your business runs on — tap any step to jump.</p><button class="btn btn-solid" data-book style="margin-top:8px">Try the live booking flow →</button></div>
+  <div class="demo reveal">
+    <div class="demo-stage slide-l"><span class="bgglow"></span>
+      <div class="phone" id="demoPhone">
+        <img class="screen on" src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp" alt="Booking link screen">
+        <img class="screen" src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3e346565f5e9940becc3_phone-image-two.webp" alt="Calendar screen">
+        <img class="screen" src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp" alt="Services setup screen">
+        <img class="screen" src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp" alt="Payments screen">
+      </div>
+    </div>
+    <div class="demo-side">
+      <div class="demo-steps" id="demoSteps">
+        <button class="dstep on" type="button"><span class="dn">1</span><span class="dtext"><b>Share your booking link</b><small>Clients pick a service and time, 24/7.</small><span class="dprogress"><span class="dbar"></span></span></span></button>
+        <button class="dstep" type="button"><span class="dn">2</span><span class="dtext"><b>Jobs land on your calendar</b><small>Color-coded, with drive times and daily totals.</small><span class="dprogress"><span class="dbar"></span></span></span></button>
+        <button class="dstep" type="button"><span class="dn">3</span><span class="dtext"><b>Set services &amp; prices</b><small>Packages, add-ons, and a verified profile.</small><span class="dprogress"><span class="dbar"></span></span></span></button>
+        <button class="dstep" type="button"><span class="dn">4</span><span class="dtext"><b>Invoice &amp; track revenue</b><small>Send invoices, take tips, and watch earnings grow.</small><span class="dprogress"><span class="dbar"></span></span></span></button>
+      </div>
+      <div class="demo-ctrl">
+        <button class="iconbtn" id="demoPlay" aria-label="Pause walkthrough"><svg id="demoPlayIcon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+        <span style="font-size:13.5px;color:var(--sub)">Auto-playing · tap a step to jump</span>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- HOW -->
+<section class="blk" id="how" style="padding-top:0"><div class="wrap">
+  <div class="head reveal"><div class="eyebrow">Live in a day</div><h2>Three steps to a fuller calendar.</h2></div>
+  <div class="steps reveal">
+    <div class="step"><div class="n">1</div><h3>Build your profile</h3><p>Add services, pricing, and a portfolio, then get verified so clients trust the booking.</p></div>
+    <div class="step"><div class="n">2</div><h3>Share your link</h3><p>Drop it in your bio, texts, and signage. Clients reserve themselves, day or night.</p></div>
+    <div class="step"><div class="n">3</div><h3>Show up &amp; get paid</h3><p>Reminders, invoices, and follow-ups run themselves. You focus on the detail.</p></div>
+  </div>
+</div></section>
+
+<!-- BOOKING-LINK BUILDER -->
+<section class="blk" id="builder" style="padding-top:0"><div class="wrap">
+  <div class="build reveal">
+    <div>
+      <div class="eyebrow">Your booking page</div>
+      <h2>Claim your link in seconds.</h2>
+      <p>Type your business name and watch your shareable booking page build itself.</p>
+      <label for="bizName">Business name</label>
+      <input id="bizName" type="text" maxlength="34" value="Apex Mobile Detailing" autocomplete="off">
+      <div class="urlpill">detailconnect.app/<b id="bizSlug">apex-mobile-detailing</b><button id="copyLink" type="button">Copy link</button></div>
+    </div>
+    <div class="bpreview">
+      <div class="bhead"><div class="bt" id="bizTitle">Apex Mobile Detailing</div><small>Book a detail · Powered by Detail Connect</small></div>
+      <div class="bbody">
+        <div class="bsvc"><span>Interior Detail</span><span class="p">$150</span></div>
+        <div class="bsvc"><span>Exterior Wash</span><span class="p">$125</span></div>
+        <div class="bsvc"><span>Full Detail</span><span class="p">$230</span></div>
+        <div class="bsvc"><span>Ceramic Coating</span><span class="p">$375</span></div>
+        <div class="bbtn">Book now</div>
+        <div class="pw">🔒 Secure booking · detailconnect.app</div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- EARNINGS CALCULATOR -->
+<section class="blk" id="calc" style="padding-top:0"><div class="wrap">
+  <div class="head reveal"><div class="eyebrow">Earnings calculator</div><h2>See what your calendar is worth.</h2><p>Drag the sliders — this is your revenue, tracked automatically in the app.</p></div>
+  <div class="calc reveal">
+    <div>
+      <div class="ctrl"><label>Jobs per week <b><span id="cJobs">12</span></b></label><input id="rJobs" type="range" min="1" max="40" value="12" aria-label="Jobs per week"></div>
+      <div class="ctrl"><label>Average ticket <b>$<span id="cTicket">160</span></b></label><input id="rTicket" type="range" min="50" max="500" step="5" value="160" aria-label="Average ticket"></div>
+      <div class="ctrl"><label>Weeks worked per year <b><span id="cWeeks">50</span></b></label><input id="rWeeks" type="range" min="30" max="52" value="50" aria-label="Weeks worked per year"></div>
+      <p class="sub">Detail Connect handles the booking, reminders, and invoicing so more of these slots actually get filled.</p>
+    </div>
+    <div class="result">
+      <div class="rlabel">Estimated yearly revenue</div>
+      <div class="big" id="cYear">$0</div>
+      <div class="rrow">
+        <div class="rcard"><div class="n" id="cWeek">$0</div><small>per week</small></div>
+        <div class="rcard"><div class="n" id="cMonth">$0</div><small>per month</small></div>
+      </div>
+      <button class="btn btn-solid" data-book style="width:100%;justify-content:center;margin-top:18px">Try the booking flow →</button>
+    </div>
+  </div>
+</div></section>
+
+<!-- PLANS -->
+<section class="blk" id="plans" style="padding-top:0"><div class="wrap">
+  <div class="head reveal"><div class="eyebrow">Simple &amp; fair</div><h2>Start free. Upgrade when you grow.</h2></div>
+  <div class="plans reveal">
+    <div class="plan">
+      <h3>Starter</h3>
+      <div class="price">Free<small> / forever</small></div>
+      <p class="muted" style="font-size:14px">Everything to take your first bookings.</p>
+      <ul>
+        <li><span class="chk">✓</span>Custom booking link</li>
+        <li><span class="chk">✓</span>Calendar &amp; reminders</li>
+        <li><span class="chk">✓</span>Photo portfolio</li>
+        <li><span class="chk">✓</span>Basic invoices</li>
+      </ul>
+      <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-line" style="width:100%;justify-content:center">Get started free</a>
+    </div>
+    <div class="plan featured">
+      <span class="badge">Most popular</span>
+      <h3>Pro</h3>
+      <div class="price">Unlock in app</div>
+      <p class="muted" style="font-size:14px">For detailers ready to grow revenue.</p>
+      <ul>
+        <li><span class="chk">✓</span>Everything in Starter</li>
+        <li><span class="chk">✓</span>Add-ons, upsells &amp; tips</li>
+        <li><span class="chk">✓</span>Revenue analytics &amp; reports</li>
+        <li><span class="chk">✓</span>Automatic rebooking reminders</li>
+      </ul>
+      <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-solid" style="width:100%;justify-content:center">Go Pro</a>
+    </div>
+  </div>
+</div></section>
+
+<!-- REVIEWS CAROUSEL -->
+<section class="blk" id="reviews" style="padding-top:0"><div class="wrap">
+  <div class="head reveal"><div class="eyebrow">Loved by detailers</div><h2>800+ five-star reviews.</h2></div>
+  <div class="carousel reveal">
+    <div class="track-vp"><div class="track" id="track">
+      <div class="slide"><div class="stars">★★★★★</div><blockquote>“Went from a notebook and a group chat to booked out three weeks. This app basically runs my shop.”</blockquote><div class="who"><div class="av">JR</div><div><b>Jordan R.</b><small>Apex Mobile Detailing · Charlotte, NC</small></div></div></div>
+      <div class="slide"><div class="stars">★★★★★</div><blockquote>“Clients book themselves and I just show up and detail. My revenue is up and I haven't touched a spreadsheet in months.”</blockquote><div class="who"><div class="av">DR</div><div><b>Dev R.</b><small>Reflect Mobile Detailing · Phoenix, AZ</small></div></div></div>
+      <div class="slide"><div class="stars">★★★★★</div><blockquote>“It made my one-person operation look like a franchise. Worth every second it saves me.”</blockquote><div class="who"><div class="av">PS</div><div><b>Priya S.</b><small>Lustre Auto Spa · Austin, TX</small></div></div></div>
+    </div></div>
+    <div class="cnav">
+      <button class="arrow" id="prev" aria-label="Previous review"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="dots" id="dots"></div>
+      <button class="arrow" id="next" aria-label="Next review"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+  </div>
+</div></section>
+
+<!-- FAQ -->
+<section class="blk" id="faq" style="padding-top:0"><div class="wrap">
+  <div class="head reveal"><div class="eyebrow">Questions</div><h2>Everything you might ask.</h2></div>
+  <div class="faq reveal">
+    <details class="qa"><summary>Is Detail Connect really free to start?<span class="ic">+</span></summary><div class="ans"><p>Yes. You can build your booking page and take bookings on the free Starter plan. Upgrade to Pro in the app when you want add-ons, upsells, and revenue analytics.</p></div></details>
+    <details class="qa"><summary>Do my clients need to download anything?<span class="ic">+</span></summary><div class="ans"><p>No. Clients just tap your booking link in any browser, pick a time, and book. You run everything from the app; they don't need an account.</p></div></details>
+    <details class="qa"><summary>How do payments work?<span class="ic">+</span></summary><div class="ans"><p>Send professional invoices the moment you finish a job, and track tips and earnings in the app. In-app payment processing is expanding — see the app for what's live in your area.</p></div></details>
+    <details class="qa"><summary>What kind of support is there?<span class="ic">+</span></summary><div class="ans"><p>Real people, 24/7, with a guaranteed response within 48 hours. Detail Connect is veteran-owned and built by detailers who use it themselves.</p></div></details>
+  </div>
+</div></section>
+
+<!-- CONTACT / BOOKING FORM -->
+<section class="blk" id="contact" style="padding-top:0"><div class="wrap">
+  <div class="contact reveal">
+    <div>
+      <div class="eyebrow">Get in touch</div>
+      <h2>Talk to the team.</h2>
+      <p>Questions about the app, a demo, or partnering with Detail Connect? Send a note and we'll get back within 48 hours.</p>
+      <div class="info">
+        <a href="tel:8032912792"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h1.6a1 1 0 0 1 1 .8l.7 3a1 1 0 0 1-.3 1L8.2 10a13 13 0 0 0 5 5l1.2-1.3a1 1 0 0 1 1-.3l3 .7a1 1 0 0 1 .8 1v1.6A2.5 2.5 0 0 1 17.5 20 14 14 0 0 1 4 6.5Z"/></svg></span>803-291-2792</a>
+        <a href="#top"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>support@detailconnect.app</a>
+      </div>
+    </div>
+    <form id="contactForm" novalidate>
+      <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" placeholder="Your name" required><div class="err">Please enter your name.</div></div>
+      <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" placeholder="you@email.com" required><div class="err">Please enter a valid email.</div></div>
+      <div class="field"><label for="topic">I'm a…</label><select id="topic" name="topic"><option>Mobile detailer</option><option>Customer looking to book</option><option>Partnership / press</option></select></div>
+      <div class="field"><label for="message">Message</label><textarea id="message" name="message" rows="4" placeholder="How can we help?" required></textarea><div class="err">Please add a short message.</div></div>
+      <button type="submit" class="btn btn-solid" style="width:100%;justify-content:center">Send message</button>
+      <div class="formmsg" id="formmsg">✓ Thanks — your message is on its way. We'll reply within 48 hours.</div>
+    </form>
+  </div>
+</div></section>
+
+<!-- FINAL -->
+<section class="blk" style="padding-top:0"><div class="wrap">
+  <div class="final reveal">
+    <div class="eyebrow" style="color:#bfe0ff">Free to start</div>
+    <h2 style="margin-top:10px">Your next booking is one download away.</h2>
+    <p>Join the fastest-growing app for mobile detailers. Veteran-owned and detailer-built.</p>
+    <div class="stores">
+      <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" aria-label="Download on the App Store"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb25cd0f207d39678716d4_app-store.webp" alt="Download on the App Store"></a>
+      <a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener" aria-label="Get it on Google Play"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb24fde2ab979a9fb05c3e_google-play.webp" alt="Get it on Google Play"></a>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="foot-top">
+    <div>
+      <a class="brand" href="#top"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/671a12872a8036f35a6425ac_image%203.webp" alt="Detail Connect" style="height:24px"></a>
+      <p style="max-width:30ch;margin-top:12px;color:var(--sub)">The all-in-one app for mobile detailers. Veteran-owned &amp; detailer-built.</p>
+    </div>
+    <div><h4>Product</h4><a href="#features">Features</a><a href="#plans">Plans</a><a href="#how">How it works</a><a href="#reviews">Reviews</a></div>
+    <div><h4>Company</h4><a href="#contact">Contact</a><a href="#faq">FAQ</a><a href="#">About</a><a href="#">Careers</a></div>
+    <div><h4>Get the app</h4><a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener">App Store</a><a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener">Google Play</a><a href="tel:8032912792">803-291-2792</a></div>
+  </div>
+  <div class="foot-bottom">
+    <div>© 2026 Detail Connect · Veteran-owned</div>
+    <div style="display:flex;gap:20px"><a href="#">Terms</a><a href="#">Privacy</a></div>
+  </div>
+</div></footer>
+
+<button class="totop" id="totop" aria-label="Back to top"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<!-- BOOKING FLOW MODAL -->
+<div class="modal" id="bookModal" role="dialog" aria-modal="true" aria-label="Book a detail">
+  <div class="sheet">
+    <div class="top">
+      <b>Book a detail</b>
+      <div class="sd-wrap"><span class="sd on"></span><span class="sd"></span><span class="sd"></span></div>
+      <button class="iconbtn" id="bookClose" aria-label="Close" style="width:32px;height:32px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="body">
+      <div class="mstep on" data-s="0">
+        <p class="mlabel">Choose a service</p>
+        <button class="opt" type="button" data-svc="Interior Detail" data-price="150"><span class="oc">🧽</span><span class="oi"><b>Interior Detail</b><small>Vacuum, wipe-down, shampoo · 100–120 min</small></span><span class="op">$150</span></button>
+        <button class="opt" type="button" data-svc="Exterior Detail" data-price="125"><span class="oc">🚿</span><span class="oi"><b>Exterior Detail</b><small>Foam wash, wheels, dry · 60–90 min</small></span><span class="op">$125</span></button>
+        <button class="opt" type="button" data-svc="Full Detail" data-price="230"><span class="oc">✨</span><span class="oi"><b>Full Detail</b><small>Inside &amp; out, the works · 120–180 min</small></span><span class="op">$230</span></button>
+        <button class="opt" type="button" data-svc="Ceramic Coating" data-price="375"><span class="oc">🛡️</span><span class="oi"><b>Ceramic Coating</b><small>Long-term paint protection · 4–5 hrs</small></span><span class="op">$375</span></button>
+      </div>
+      <div class="mstep" data-s="1">
+        <p class="mlabel">Pick a day</p>
+        <div class="chips" id="dayChips"></div>
+        <p class="mlabel" style="margin-top:18px">Pick a time</p>
+        <div class="chips" id="timeChips"></div>
+      </div>
+      <div class="mstep" data-s="2">
+        <div class="confirm">
+          <div class="cring">✓</div>
+          <h3 style="font-size:22px">You're booked!</h3>
+          <p id="bookSummary" style="color:var(--sub);margin-top:10px;line-height:1.6"></p>
+          <p style="color:var(--faint);font-size:12.5px;margin-top:16px">A confirmation &amp; reminder would be sent automatically · Powered by Detail Connect</p>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-line" id="bookBack" style="visibility:hidden">Back</button>
+      <button class="btn btn-solid" id="bookNext">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);};
+
+  /* THEME */
+  const root=document.documentElement, tIcon=$('#themeIcon');
+  const moon='<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/>';
+  const sun='<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  function setTheme(d){ root.setAttribute('data-theme',d?'dark':'light'); tIcon.innerHTML=d?moon:sun; }
+  const prefersDark=matchMedia('(prefers-color-scheme: dark)').matches;
+  setTheme(prefersDark);
+  $('#themeBtn').addEventListener('click',()=>setTheme(root.getAttribute('data-theme')!=='dark'));
+
+  /* MOBILE MENU */
+  const menu=$('#navlinks'), hamb=$('#hambBtn');
+  hamb.addEventListener('click',()=>{ const open=menu.classList.toggle('open'); hamb.setAttribute('aria-expanded',open); });
+  $$('#navlinks a').forEach(a=>a.addEventListener('click',()=>{ menu.classList.remove('open'); hamb.setAttribute('aria-expanded','false'); }));
+
+  /* TABS */
+  const tabs=$$('.tab'), panels=$$('.panel');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.setAttribute('aria-selected','false'));
+    t.setAttribute('aria-selected','true');
+    const i=+t.dataset.tab;
+    panels.forEach((p,pi)=>{ if(pi===i)p.setAttribute('data-active','');else p.removeAttribute('data-active'); });
+  }));
+
+  /* FAQ (animate max-height) */
+  $$('.qa').forEach(d=>{
+    const ans=d.querySelector('.ans');
+    d.addEventListener('toggle',()=>{ ans.style.maxHeight=d.open?ans.scrollHeight+'px':'0'; });
+  });
+
+  /* CAROUSEL */
+  const track=$('#track'), slides=$$('.slide'), dotsWrap=$('#dots'); let idx=0;
+  slides.forEach((_,i)=>{ const b=document.createElement('button'); b.className='dot'; b.setAttribute('aria-label','Go to review '+(i+1)); b.addEventListener('click',()=>go(i)); dotsWrap.appendChild(b); });
+  const dots=$$('.dot');
+  function go(i){ idx=(i+slides.length)%slides.length; track.style.transform='translateX('+(-idx*100)+'%)'; dots.forEach((d,di)=>d.setAttribute('aria-current',di===idx)); }
+  $('#next').addEventListener('click',()=>{go(idx+1);reset();});
+  $('#prev').addEventListener('click',()=>{go(idx-1);reset();});
+  go(0);
+  let auto=setInterval(()=>go(idx+1),5500);
+  function reset(){ clearInterval(auto); auto=setInterval(()=>go(idx+1),5500); }
+  const car=$('.carousel'); car.setAttribute('tabindex','0'); car.setAttribute('aria-label','Reviews carousel');
+  car.addEventListener('keydown',e=>{ if(e.key==='ArrowRight'){go(idx+1);reset();} else if(e.key==='ArrowLeft'){go(idx-1);reset();} });
+  let sx=null; const vp=$('.track-vp');
+  vp.addEventListener('pointerdown',e=>{ sx=e.clientX; });
+  addEventListener('pointerup',e=>{ if(sx===null)return; const dx=e.clientX-sx; if(Math.abs(dx)>40){ go(idx+(dx<0?1:-1)); reset(); } sx=null; });
+
+  /* CONTACT FORM */
+  const form=$('#contactForm');
+  form.addEventListener('submit',e=>{
+    e.preventDefault();
+    let ok=true;
+    const check=(id,test)=>{ const f=$('#'+id).closest('.field'); const bad=!test($('#'+id).value.trim()); f.classList.toggle('invalid',bad); if(bad)ok=false; };
+    check('name',v=>v.length>0);
+    check('email',v=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v));
+    check('message',v=>v.length>0);
+    if(!ok){ toast('Please fix the highlighted fields'); return; }
+    $('#formmsg').classList.add('show');
+    form.querySelector('button[type=submit]').textContent='Sent ✓';
+    toast('Message sent — thank you!');
+    setTimeout(()=>{ form.reset(); $('#formmsg').classList.remove('show'); form.querySelector('button[type=submit]').textContent='Send message'; },3500);
+  });
+  $$('#contactForm input,#contactForm textarea').forEach(el=>el.addEventListener('input',()=>el.closest('.field').classList.remove('invalid')));
+
+  /* BACK TO TOP + ACTIVE NAV */
+  const totop=$('#totop');
+  addEventListener('scroll',()=>{ totop.classList.toggle('show',scrollY>600); },{passive:true});
+  totop.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));
+
+  const navA=$$('#navlinks a'); const secs=navA.map(a=>{const h=a.getAttribute('href');return h&&h.charAt(0)==='#'?document.querySelector(h):null;}).filter(Boolean);
+  const navObs=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ const id='#'+e.target.id; navA.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===id)); } }); },{rootMargin:'-45% 0px -50% 0px'});
+  secs.forEach(s=>navObs.observe(s));
+
+  /* DEMO WALKTHROUGH */
+  (function(){
+    const phone=$('#demoPhone'); if(!phone) return;
+    const screens=$$('#demoPhone .screen'), steps=$$('#demoSteps .dstep');
+    const playBtn=$('#demoPlay'), playIcon=$('#demoPlayIcon');
+    const barsSVG='<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>';
+    const triSVG='<path d="M7 5l12 7-12 7z"/>';
+    const DWELL=4000; let i=0, playing=true, timer=null, inView=true;
+    function render(){
+      screens.forEach((s,si)=>s.classList.toggle('on',si===i));
+      steps.forEach((s,si)=>s.classList.toggle('on',si===i));
+      steps.forEach(s=>{const b=s.querySelector('.dbar'); b.style.transition='none'; b.style.width='0';});
+      if(playing&&inView){ const b=steps[i].querySelector('.dbar'); requestAnimationFrame(()=>{ b.style.transition='width '+DWELL+'ms linear'; b.style.width='100%'; }); }
+    }
+    function schedule(){ clearTimeout(timer); if(playing&&inView) timer=setTimeout(()=>{ i=(i+1)%screens.length; render(); schedule(); },DWELL); }
+    function setPlaying(p){ playing=p; playIcon.innerHTML=p?barsSVG:triSVG; playBtn.setAttribute('aria-label',p?'Pause walkthrough':'Play walkthrough'); if(p){render();schedule();} else { clearTimeout(timer); const b=steps[i].querySelector('.dbar'); b.style.transition='none'; } }
+    steps.forEach((s,si)=>s.addEventListener('click',()=>{ i=si; if(!playing){ playing=true; playIcon.innerHTML=barsSVG; playBtn.setAttribute('aria-label','Pause walkthrough'); } render(); schedule(); }));
+    playBtn.addEventListener('click',()=>setPlaying(!playing));
+    new IntersectionObserver(es=>{ inView=es[0].isIntersecting; if(inView){ if(playing){render();schedule();} } else { clearTimeout(timer); } },{threshold:.25}).observe(phone);
+    render(); schedule();
+  })();
+
+  /* SCROLL PROGRESS */
+  const sprog=$('#scrollprog');
+  addEventListener('scroll',()=>{ const h=document.documentElement.scrollHeight-innerHeight; sprog.style.width=(h>0?(scrollY/h*100):0)+'%'; },{passive:true});
+
+  /* COUNT-UP for the 800+ stat */
+  function ease(p){ return 1-Math.pow(1-p,3); }
+  const s8=$('#stat800');
+  if(s8){ new IntersectionObserver((es,ob)=>{ es.forEach(e=>{ if(e.isIntersecting){ const start=performance.now(); (function tick(t){ const p=Math.min(1,(t-start)/1200); s8.textContent=Math.round(800*ease(p))+'+'; if(p<1)requestAnimationFrame(tick); })(performance.now()); ob.unobserve(e.target); } }); },{threshold:.6}).observe(s8.closest('.cell')); }
+
+  /* EARNINGS CALCULATOR */
+  (function(){
+    const rj=$('#rJobs'),rt=$('#rTicket'),rw=$('#rWeeks'); if(!rj) return;
+    const money=v=>'$'+Math.round(v).toLocaleString('en-US');
+    const cur={y:0,w:0,m:0};
+    function animTo(el,from,to,key){ const s=performance.now(),d=520; (function st(t){ const p=Math.min(1,(t-s)/d); el.textContent=money(from+(to-from)*ease(p)); if(p<1)requestAnimationFrame(st); })(performance.now()); cur[key]=to; }
+    function calc(){
+      $('#cJobs').textContent=rj.value; $('#cTicket').textContent=rt.value; $('#cWeeks').textContent=rw.value;
+      const w=(+rj.value)*(+rt.value), y=w*(+rw.value), m=y/12;
+      animTo($('#cYear'),cur.y,y,'y'); animTo($('#cWeek'),cur.w,w,'w'); animTo($('#cMonth'),cur.m,m,'m');
+    }
+    [rj,rt,rw].forEach(r=>r.addEventListener('input',calc));
+    calc();
+  })();
+
+  /* CONFETTI */
+  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function confetti(){
+    if(reduceMotion) return;
+    let c=document.getElementById('confetti');
+    if(!c){ c=document.createElement('canvas'); c.id='confetti'; document.body.appendChild(c); }
+    const x=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+    const cols=['#1a4fd6','#2f6bff','#0aa2e6','#00b892','#f2a93b','#ffffff'];
+    const P=[]; for(let i=0;i<130;i++) P.push({x:innerWidth/2+(Math.random()-.5)*160,y:innerHeight*0.42,vx:(Math.random()-.5)*9,vy:-7-Math.random()*8,g:.24+Math.random()*.12,r:4+Math.random()*5,rot:Math.random()*6,vr:(Math.random()-.5)*.5,col:cols[i%cols.length],life:1});
+    const t0=performance.now();
+    (function loop(t){ x.clearRect(0,0,c.width,c.height); let alive=false;
+      P.forEach(p=>{ p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.life-=.008;
+        if(p.y<c.height+20&&p.life>0){ alive=true; x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.globalAlpha=Math.max(0,p.life);x.fillStyle=p.col;x.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.62);x.restore(); } });
+      if(alive && t-t0<3800) requestAnimationFrame(loop); else x.clearRect(0,0,c.width,c.height);
+    })(performance.now());
+  }
+
+  /* BOOKING FLOW MODAL */
+  (function(){
+    const modal=$('#bookModal'); if(!modal) return;
+    const opts=$$('#bookModal .opt'), steps=$$('#bookModal .mstep'), dots=$$('#bookModal .sd');
+    const back=$('#bookBack'), next=$('#bookNext');
+    let s=0, svc=null, price=0, day=null, time=null;
+    const dates=[['Fri','Aug 22'],['Sat','Aug 23'],['Sun','Aug 24'],['Mon','Aug 25'],['Tue','Aug 26']];
+    const times=['9:00 AM','11:30 AM','1:00 PM','3:15 PM','5:00 PM'];
+    const dc=$('#dayChips'); dates.forEach(d=>{ const b=document.createElement('button'); b.type='button'; b.className='chip2'; b.textContent=d[0]+' '+d[1]; b.addEventListener('click',()=>{ [...dc.children].forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); day=d[0]+', '+d[1]; upd(); }); dc.appendChild(b); });
+    const tc=$('#timeChips'); times.forEach(t=>{ const b=document.createElement('button'); b.type='button'; b.className='chip2'; b.textContent=t; b.addEventListener('click',()=>{ [...tc.children].forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); time=t; upd(); }); tc.appendChild(b); });
+    opts.forEach(o=>o.addEventListener('click',()=>{ opts.forEach(x=>x.classList.remove('sel')); o.classList.add('sel'); svc=o.dataset.svc; price=o.dataset.price; upd(); }));
+    function upd(){
+      let ok=true; if(s===0)ok=!!svc; if(s===1)ok=!!day&&!!time;
+      next.disabled=!ok; next.style.opacity=ok?1:.5;
+      next.textContent = s===2?'Done' : (s===1?'Confirm booking':'Continue');
+      back.style.visibility = s===0?'hidden':'visible';
+      if(s===2 && svc){ $('#bookSummary').innerHTML='<b>'+svc+'</b> — $'+price+'<br>'+day+' at '+time; }
+    }
+    function render(){ steps.forEach((st,i)=>st.classList.toggle('on',i===s)); dots.forEach((d,i)=>d.classList.toggle('on',i===s)); upd(); }
+    next.addEventListener('click',()=>{ if(next.disabled)return; if(s<2){ s++; render(); if(s===2) confetti(); } else { close(); toast('Booking confirmed — see you then!'); } });
+    back.addEventListener('click',()=>{ if(s>0){ s--; render(); } });
+    function open(){ s=0; svc=null; price=0; day=null; time=null; opts.forEach(x=>x.classList.remove('sel')); [...dc.children,...tc.children].forEach(x=>x.classList.remove('sel')); render(); modal.classList.add('open'); document.body.style.overflow='hidden'; }
+    function close(){ modal.classList.remove('open'); document.body.style.overflow=''; }
+    $$('[data-book]').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); open(); }));
+    $('#bookClose').addEventListener('click',close);
+    modal.addEventListener('click',e=>{ if(e.target===modal)close(); });
+    addEventListener('keydown',e=>{ if(e.key==='Escape')close(); });
+    render();
+  })();
+
+  /* ANALYTICS DASHBOARD (count-up + bars + sparkline) */
+  (function(){
+    const dash=$('#grow .dash'); if(!dash) return;
+    let done=false;
+    new IntersectionObserver((es,ob)=>{ es.forEach(e=>{ if(e.isIntersecting&&!done){ done=true;
+      dash.classList.add('in');
+      $$('#growBars .bar').forEach(b=>{ b.style.height=b.dataset.h+'%'; });
+      $$('#grow .kpi .v').forEach(el=>{
+        const to=parseFloat(el.dataset.count), dec=+(el.dataset.dec||0), pre=el.dataset.prefix||'';
+        const s=performance.now();
+        (function tick(n){ const p=Math.min(1,(n-s)/1100); const v=to*ease(p); el.textContent=pre+(dec?v.toFixed(dec):Math.round(v).toLocaleString('en-US')); if(p<1)requestAnimationFrame(tick); })(performance.now());
+      });
+      ob.disconnect();
+    } }); },{threshold:.4}).observe(dash);
+  })();
+
+  /* BOOKING-LINK BUILDER */
+  (function(){
+    const inp=$('#bizName'); if(!inp) return;
+    const slug=$('#bizSlug'), title=$('#bizTitle');
+    const slugify=s=>s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'your-shop';
+    function upd(){ const v=inp.value.trim()||'Your Detailing Co.'; title.textContent=v; slug.textContent=slugify(v); }
+    inp.addEventListener('input',upd); upd();
+    $('#copyLink').addEventListener('click',()=>{ const url='detailconnect.app/'+slug.textContent; const done=()=>toast('Link copied — '+url); if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(()=>toast(url)); } else { toast(url); } });
+  })();
+
+  /* HERO CURSOR SPOTLIGHT */
+  (function(){
+    const h=$('.hero'); if(!h||reduceMotion) return;
+    const spot=document.createElement('div'); spot.className='spot'; h.prepend(spot);
+    h.addEventListener('pointermove',e=>{ const r=h.getBoundingClientRect(); h.style.setProperty('--mx',(e.clientX-r.left)+'px'); h.style.setProperty('--my',(e.clientY-r.top)+'px'); });
+  })();
+
+  /* CARD TILT */
+  if(!matchMedia('(pointer:coarse)').matches && !reduceMotion){
+    $$('.step,.plan').forEach(el=>{
+      el.classList.add('tilt');
+      el.addEventListener('pointermove',e=>{ const r=el.getBoundingClientRect(); const px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5; el.style.transform='perspective(760px) rotateX('+(-py*5)+'deg) rotateY('+(px*6)+'deg) translateY(-4px)'; });
+      el.addEventListener('pointerleave',()=>{ el.style.transform=''; });
+    });
+  }
+
+  /* REVEAL */
+  const rev=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('in');rev.unobserve(e.target);} }),{threshold:.12});
+  $$('.reveal,.slide-l,.slide-r').forEach(el=>rev.observe(el));
+})();
+</script>
