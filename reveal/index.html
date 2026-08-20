@@ -27,6 +27,10 @@
   header{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:18px 26px;mix-blend-mode:difference}
   .brand img{height:24px;filter:brightness(0) invert(1)}
   .navcta{border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px}
+  .topnav{display:flex;gap:18px;align-items:center}
+  .topnav a{font-size:13.5px;font-weight:700;white-space:nowrap;opacity:.92;transition:opacity .15s}
+  .topnav a:hover{opacity:1}
+  @media(max-width:1000px){.topnav{display:none}}
 
   .hero{position:relative;height:100vh;min-height:620px;overflow:hidden;display:grid;place-items:center}
   .reveal-base{position:absolute;inset:0;z-index:1;overflow:hidden}
@@ -101,7 +105,10 @@
 <div class="cursor" id="cursor"></div><div class="cursor-dot" id="cursorDot"></div>
 
 <header>
-  <a class="brand" href="#"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/671a12872a8036f35a6425ac_image%203.webp" alt="Detail Connect"></a>
+  <a class="brand" href="../"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/671a12872a8036f35a6425ac_image%203.webp" alt="Detail Connect"></a>
+  <nav class="topnav">
+    <a href="../#blogs">Blogs</a><a href="../#pricing">Pricing</a><a href="../#features">Features</a><a href="../#about">About us</a><a href="../#cases">Case Studies</a><a href="../#faq">FAQ</a><a href="../#reviews">Reviews</a>
+  </nav>
   <a class="navcta" href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener">Get the app</a>
 </header>
 
