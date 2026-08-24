@@ -117,10 +117,10 @@
   .head h2 span{background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent}
   .head p{color:var(--sub);font-size:18px;margin-top:12px}
   /* scrolling logo/name ticker */
-  .ticker{overflow:hidden;padding:22px 0;border-block:1px solid var(--line);background:var(--card);margin:10px 0 40px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
-  .tick-track{display:flex;gap:54px;width:max-content;animation:tickscroll 42s linear infinite;align-items:center}
-  .tick-track span{font-size:19px;font-weight:800;color:var(--faint);white-space:nowrap;letter-spacing:-.01em;display:inline-flex;align-items:center;gap:9px}
-  .tick-track span::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:.5;flex:none}
+  .ticker-label{text-align:center;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);font-weight:800;margin:6px 0 -6px}
+  .ticker{overflow:hidden;padding:24px 0;border-block:1px solid var(--line);background:var(--card);margin:16px 0 40px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+  .tick-track{display:flex;gap:60px;width:max-content;animation:tickscroll 42s linear infinite;align-items:center}
+  .tick-track span{font-size:24px;font-weight:800;color:var(--faint);white-space:nowrap;letter-spacing:-.02em;opacity:.85;filter:grayscale(1)}
   @keyframes tickscroll{to{transform:translateX(-50%)}}
   .ticker:hover .tick-track{animation-play-state:paused}
   @media(prefers-reduced-motion:reduce){.tick-track{animation:none}}
@@ -555,6 +555,7 @@
   <!-- BIG SOCIAL PROOF: trusted-by + ticker + reviews + IG -->
   <section class="blk alt" id="reviews">
     <div class="wrap"><div class="head reveal"><div class="eyebrow">Trusted by detailers</div><h2>Trusted by over <span>17,000</span> detailers.</h2><p>Mobile detailing businesses across all 50 states run their day on Detail Connect.</p></div></div>
+    <div class="wrap"><div class="ticker-label reveal">As featured in</div></div>
     <div class="ticker reveal"><div class="tick-track" data-ticker></div></div>
     <div class="wrap">
     <div class="reveal" data-reviews></div>
@@ -784,11 +785,20 @@
   renderFaq(document.querySelector('[data-faq]'),FAQ);
   renderFaq(document.querySelector('[data-faq-pricing]'),PFAQ);
 
-  /* TRUSTED-BY SCROLLING TICKER (detailing businesses) */
+  /* AS-FEATURED-IN SCROLLING PRESS TICKER */
   (function(){
     const host=document.querySelector('[data-ticker]'); if(!host) return;
-    const NAMES=['Apex Mobile Detailing','Reflect Detailing','Lustre Auto Spa','Elite Shine','Gleam Mobile','Crown Detailing','Shine Society','Peak Auto Spa','Prestige Detail Co.','Riverside Detailing','Summit Auto Spa','Coastal Detailing','Velocity Detailing','Mirror Finish Co.'];
-    host.innerHTML=[...NAMES,...NAMES].map(n=>`<span>${n}</span>`).join('');
+    const PRESS=[
+      {t:'Forbes',s:'font-family:Georgia,\'Times New Roman\',serif;font-weight:800;letter-spacing:-.01em'},
+      {t:'Entrepreneur',s:'letter-spacing:.01em'},
+      {t:'TechCrunch',s:'font-weight:900'},
+      {t:'Inc.',s:'font-weight:900;letter-spacing:-.03em'},
+      {t:'Business Insider',s:'font-family:Georgia,serif;font-weight:700'},
+      {t:'AutoWeek',s:'font-style:italic;font-weight:900'},
+      {t:'Detailing Success',s:'letter-spacing:.02em'},
+      {t:'Car Care Business',s:''},
+    ];
+    host.innerHTML=[...PRESS,...PRESS].map(p=>`<span style="${p.s}">${p.t}</span>`).join('');
   })();
 
   /* FEATURE TAB EXPLORER (shared markup for home + features page) */
