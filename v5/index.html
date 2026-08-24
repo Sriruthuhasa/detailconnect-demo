@@ -114,7 +114,16 @@
   section.blk.alt{background:var(--soft);border-block:1px solid var(--line)}
   .head{max-width:660px;margin:0 auto 46px;text-align:center}
   .head h2{font-size:clamp(28px,4.2vw,44px);margin-top:12px}
+  .head h2 span{background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent}
   .head p{color:var(--sub);font-size:18px;margin-top:12px}
+  /* scrolling logo/name ticker */
+  .ticker{overflow:hidden;padding:22px 0;border-block:1px solid var(--line);background:var(--card);margin:10px 0 40px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+  .tick-track{display:flex;gap:54px;width:max-content;animation:tickscroll 42s linear infinite;align-items:center}
+  .tick-track span{font-size:19px;font-weight:800;color:var(--faint);white-space:nowrap;letter-spacing:-.01em;display:inline-flex;align-items:center;gap:9px}
+  .tick-track span::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:.5;flex:none}
+  @keyframes tickscroll{to{transform:translateX(-50%)}}
+  .ticker:hover .tick-track{animation-play-state:paused}
+  @media(prefers-reduced-motion:reduce){.tick-track{animation:none}}
   .pagehead{padding:58px 0 6px;text-align:center}
   .pagehead h1{font-size:clamp(34px,5vw,56px);font-weight:800;margin-top:12px;letter-spacing:-.03em}
   .pagehead h1 span{background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -416,7 +425,7 @@
     <div class="cell"><span class="te">🏆</span><small>Highest rated app for detailers</small></div>
     <div class="cell"><span class="te">📈</span><small>Automate your detailing business</small></div>
     <div class="cell"><span class="te">📞</span><small>Live customer support</small></div>
-    <div class="cell"><span class="te">🎛️</span><small>All the tools in 1 app</small></div>
+    <div class="cell"><span class="te">📱</span><small>All the tools in 1 app</small></div>
   </div></div></div>
 
   <!-- FEATURED TOOLS (3 at a glance) -->
@@ -438,7 +447,21 @@
       <div class="stcard reveal"><div class="icb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></div><h3>Automated messages save you time</h3><p>We automatically remind clients about their appointments so you don't have to.</p><div class="cl"><span class="chk">✓</span>Fewer no-shows. Fewer texts. More time back.</div><div class="ph"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp" alt="Automated reminders"></div></div>
       <div class="stcard reveal"><div class="icb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15V9M12 15V6M16 15v-3"/></svg></div><h3>Insights &amp; reporting at a glance</h3><p>See your revenue, jobs, and growth in one place so you can make smart decisions quickly.</p><div class="cl"><span class="chk">✓</span>No more spreadsheets. No more guessing.</div><div class="ph"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp" alt="Insights and reporting"></div></div>
     </div>
-    <div class="timebar reveal"><span class="tbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span><div class="tt"><b>Less admin. More time. More money.</b><small>Detail Connect handles the busywork so you can focus on growing your business.</small></div><a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-solid">Start free trial →</a></div>
+    <div style="text-align:center;margin:46px 0 20px" class="reveal"><div class="eyebrow">Put a number on it</div><h3 style="font-size:clamp(24px,3.6vw,34px);font-weight:800;margin-top:8px;letter-spacing:-.03em">See the time <span style="background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent">and money</span> you'd save.</h3></div>
+    <div class="calc reveal">
+      <div>
+        <div class="ctrl"><label>Jobs per week <b><span id="hJobs">12</span></b></label><input id="hrJobs" type="range" min="1" max="40" value="12" aria-label="Jobs per week"></div>
+        <div class="ctrl"><label>Average ticket <b>$<span id="hTicket">160</span></b></label><input id="hrTicket" type="range" min="50" max="500" step="5" value="160" aria-label="Average ticket"></div>
+        <p class="sub">Detail Connect handles booking, reminders, and invoicing so more slots actually get filled — and the admin runs itself.</p>
+      </div>
+      <div class="result">
+        <div class="rlabel">Estimated yearly revenue</div>
+        <div class="big" id="hYear">$0</div>
+        <div class="rrow"><div class="rcard2"><div class="n" id="hWeek">$0</div><small>per week</small></div><div class="rcard2"><div class="n" id="hMonth">$0</div><small>per month</small></div></div>
+        <div class="tsaved"><span class="tsi">⏱️</span><div><b id="hSaved">~0h</b><small>estimated time saved on admin work / month</small></div></div>
+      </div>
+    </div>
+    <div class="timebar reveal" style="margin-top:30px"><span class="tbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span><div class="tt"><b>Less admin. More time. More money.</b><small>Detail Connect handles the busywork so you can focus on growing your business.</small></div><a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-solid">Start free trial →</a></div>
     <div class="cta-center" style="margin-top:22px"><a class="btn-link" href="#features">See every feature in detail →</a></div>
   </div></section>
 
@@ -479,24 +502,6 @@
     <div class="cta-center" style="margin-top:34px">
       <p style="font-size:clamp(20px,3vw,28px);font-weight:800;letter-spacing:-.02em;max-width:24ch;margin:0 auto 18px;line-height:1.15">Spend less time managing your business. More time growing it.</p>
       <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-solid" style="padding:13px 24px;font-size:15px">Start your free trial →</a>
-    </div>
-  </div></section>
-
-  <!-- EARNINGS CALCULATOR (home, no weeks) -->
-  <section class="blk alt" id="calc-home"><div class="wrap">
-    <div class="head reveal"><div class="eyebrow">Earnings calculator</div><h2>See what your calendar is worth.</h2><p>Drag the sliders — this is your revenue, tracked automatically in the app.</p></div>
-    <div class="calc reveal">
-      <div>
-        <div class="ctrl"><label>Jobs per week <b><span id="hJobs">12</span></b></label><input id="hrJobs" type="range" min="1" max="40" value="12" aria-label="Jobs per week"></div>
-        <div class="ctrl"><label>Average ticket <b>$<span id="hTicket">160</span></b></label><input id="hrTicket" type="range" min="50" max="500" step="5" value="160" aria-label="Average ticket"></div>
-        <p class="sub">Detail Connect handles booking, reminders, and invoicing so more slots actually get filled.</p>
-      </div>
-      <div class="result">
-        <div class="rlabel">Estimated yearly revenue</div>
-        <div class="big" id="hYear">$0</div>
-        <div class="rrow"><div class="rcard2"><div class="n" id="hWeek">$0</div><small>per week</small></div><div class="rcard2"><div class="n" id="hMonth">$0</div><small>per month</small></div></div>
-        <div class="tsaved"><span class="tsi">⏱️</span><div><b id="hSaved">~0h</b><small>estimated time saved on admin work / month</small></div></div>
-      </div>
     </div>
   </div></section>
 
@@ -547,9 +552,11 @@
     <div class="faq reveal" data-faq></div>
   </div></section>
 
-  <!-- REVIEWS carousel + Instagram testimonials -->
-  <section class="blk alt" id="reviews"><div class="wrap">
-    <div class="head reveal"><div class="eyebrow">Loved by detailers</div><h2>800+ five-star reviews.</h2><p>Straight from the App Store — and real detailer stories on Instagram.</p></div>
+  <!-- BIG SOCIAL PROOF: trusted-by + ticker + reviews + IG -->
+  <section class="blk alt" id="reviews">
+    <div class="wrap"><div class="head reveal"><div class="eyebrow">Trusted by detailers</div><h2>Trusted by over <span>17,000</span> detailers.</h2><p>Mobile detailing businesses across all 50 states run their day on Detail Connect.</p></div></div>
+    <div class="ticker reveal"><div class="tick-track" data-ticker></div></div>
+    <div class="wrap">
     <div class="reveal" data-reviews></div>
     <div class="igblock reveal">
       <div class="igbar">
@@ -776,6 +783,13 @@
   function renderFaq(host,data){if(!host)return;host.innerHTML=data.map(([q,a])=>`<details class="qa"><summary>${q}<span class="ic">+</span></summary><div class="ans"><p>${a}</p></div></details>`).join('');}
   renderFaq(document.querySelector('[data-faq]'),FAQ);
   renderFaq(document.querySelector('[data-faq-pricing]'),PFAQ);
+
+  /* TRUSTED-BY SCROLLING TICKER (detailing businesses) */
+  (function(){
+    const host=document.querySelector('[data-ticker]'); if(!host) return;
+    const NAMES=['Apex Mobile Detailing','Reflect Detailing','Lustre Auto Spa','Elite Shine','Gleam Mobile','Crown Detailing','Shine Society','Peak Auto Spa','Prestige Detail Co.','Riverside Detailing','Summit Auto Spa','Coastal Detailing','Velocity Detailing','Mirror Finish Co.'];
+    host.innerHTML=[...NAMES,...NAMES].map(n=>`<span>${n}</span>`).join('');
+  })();
 
   /* FEATURE TAB EXPLORER (shared markup for home + features page) */
   const FXHTML=`
