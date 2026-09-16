@@ -1,4 +1,9 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Detail Connect V7</title>
+<!-- Leaflet (real coverage map) — loads on the live site; blocked in artifact preview (falls back to the SVG map) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root{
     --bg:#ffffff; --soft:#f4f6fd; --tint:#eceefc; --card:#ffffff;
@@ -33,6 +38,18 @@
   :focus-visible{outline:2.5px solid var(--blue);outline-offset:3px;border-radius:8px}
   button{font-family:inherit;cursor:pointer}
 
+  /* veteran-owned + phone utility bar (white, like detailconnect.app) */
+  .topbar{background:var(--card);border-bottom:1px solid var(--line)}
+  .tb-row{display:flex;align-items:center;justify-content:center;gap:16px;min-height:46px;font-size:14px;font-weight:700}
+  .tb-left{display:flex;align-items:center;justify-content:center;gap:12px 26px;flex-wrap:wrap}
+  .tb-item{display:inline-flex;align-items:center;gap:8px;color:var(--ink)}
+  .tb-phone .tb-ic{display:inline-grid;place-items:center;color:var(--blue)}
+  .tb-phone{color:var(--ink);letter-spacing:.01em}
+  a.tb-phone:hover{color:var(--blue)}
+  .tb-vet .tb-flag{font-size:16px;line-height:1}
+  .tb-cta{background:var(--blue);color:#fff;border-radius:999px;padding:10px 26px;font-weight:800;font-size:14px;box-shadow:0 8px 18px -10px rgba(22,76,211,.7);transition:background .2s,transform .15s}
+  .tb-cta:hover{background:var(--blue-2);transform:translateY(-1px)}
+  @media(max-width:560px){.tb-row{gap:10px 14px;padding:8px 0;min-height:auto;font-size:13px}.tb-left{gap:4px 16px}.tb-cta{padding:9px 18px;font-size:13px}}
   header{position:sticky;top:0;z-index:70;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid var(--line)}
   nav{display:flex;align-items:center;height:var(--nav-h);gap:14px}
   .brand img{height:26px;width:auto}
@@ -45,9 +62,12 @@
   .navsp{flex:1}
   .iconbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;color:var(--ink)}
   .iconbtn:hover{border-color:var(--blue)} .iconbtn svg{width:18px;height:18px}
-  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:11px;padding:10px 16px;font-weight:700;font-size:14px;border:1px solid transparent;transition:transform .15s,background .2s,border-color .2s}
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:11px;padding:10px 16px;font-weight:700;font-size:14px;border:1px solid transparent;white-space:nowrap;transition:transform .15s,background .2s,border-color .2s}
   .btn-solid{background:var(--blue);color:#fff;box-shadow:0 10px 22px -12px rgba(22,76,211,.8)}
   .btn-solid:hover{transform:translateY(-2px);background:var(--blue-2)}
+  /* tighten the header CTA on phones so it never wraps or crowds the row */
+  @media(max-width:760px){nav{gap:9px} nav>.btn-solid{padding:9px 13px;font-size:13.5px}}
+  @media(max-width:380px){nav>.btn-solid{padding:8px 11px;font-size:13px} .brand img{height:23px}}
   .btn-line{border-color:var(--line);color:var(--ink);background:var(--card)}.btn-line:hover{border-color:var(--blue)}
   .btn-link{color:var(--blue);font-weight:700;font-size:14.5px;display:inline-flex;gap:7px;align-items:center}.btn-link:hover{gap:11px}
   .hamb{display:none}
@@ -74,12 +94,44 @@
   .stores{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
   .stores a{transition:transform .15s}.stores a:hover{transform:translateY(-2px)}
   .stores img{height:48px;width:auto}
+  .hero-rating{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14.5px;color:var(--ink-2);font-weight:600}
+  .hero-rating .hr-stars{color:var(--amber);letter-spacing:1.5px;font-size:15px}
+  .hero-rating b{color:var(--ink);font-weight:800}
   .social{display:flex;gap:14px 24px;flex-wrap:wrap;align-items:center;margin:0 0 18px}
   .social .sp{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:14px}
   .social .sp b{color:var(--ink);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
   .social .gold{color:var(--amber);letter-spacing:1px;font-size:14px}
   .final .social{justify-content:center}
   .final .social .sp{color:#dbe7ff}.final .social .sp b{color:#fff}
+  /* full-width social proof + logos band under the hero */
+  .hero-proof{margin-top:44px;border-top:1px solid var(--line);padding-top:28px}
+  .hero-trust{display:flex;align-items:center;justify-content:center;gap:11px;font-size:15.5px;color:var(--ink-2);font-weight:600;margin:0 auto 22px;text-align:center;flex-wrap:wrap}
+  .hero-trust .hts{color:var(--amber);letter-spacing:1px;flex:none}
+  .hero-trust b{color:var(--ink);font-weight:800}
+  .hero-logos{margin:0;border:0;background:transparent;padding:6px 0 4px}
+  .hero-logos .proof-cap{text-align:center;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:800;margin-bottom:16px}
+  /* scrolling review cards reuse the main Reviews card look (.rcard) */
+  .hero-logos{padding:6px 0 8px}
+  .hero-logos .tick-track{gap:16px;animation-duration:80s;align-items:stretch}
+  .hero-logos.paused .tick-track{animation-play-state:paused}
+  .hero-logos .rcard{position:relative;width:min(280px,84vw);white-space:normal;padding:18px;gap:9px}
+  .hero-logos .rcard .dp{width:40px;height:40px;font-size:14px}
+  .hero-logos .rcard .who b{font-size:14px}
+  .hero-logos .rcard .who small{font-size:11.5px}
+  .hero-logos .rcard .stars{font-size:14px;letter-spacing:1.5px}
+  .hero-logos .rcard blockquote{font-size:13.5px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .hero-logos .rcard.expanded blockquote{display:block;-webkit-line-clamp:unset;overflow:visible}
+  .hero-logos .rc-corner{position:absolute;top:14px;right:14px;width:18px;height:18px;color:var(--faint);opacity:.55}
+  .hero-logos .rc-corner svg{width:100%;height:100%;fill:currentColor;display:block}
+  .hero-logos .rc-more{align-self:flex-start;background:none;border:0;padding:0;margin-top:1px;color:var(--blue);font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
+  .hero-logos .rc-more:hover{text-decoration:underline}
+  @media(max-width:560px){.hero-logos .rcard{width:255px;padding:16px}}
+  /* App Store / Google Play badges under the scroller */
+  .hero-stores{display:flex;justify-content:center;gap:12px;margin-top:20px}
+  .hero-stores a{transition:transform .15s}
+  .hero-stores a:hover{transform:translateY(-2px)}
+  .hero-stores img{height:46px;width:auto}
+  @media(max-width:900px){.hero-proof{margin-top:34px}}
   /* raw framed screenshot */
   .shot{position:relative;display:flex;justify-content:center}
   .shot .glow{position:absolute;width:78%;height:80%;top:8%;border-radius:40px;background:radial-gradient(circle at 50% 40%,var(--blue-soft),transparent 68%)}
@@ -100,7 +152,18 @@
   @media(prefers-reduced-motion:reduce){.nfloat{animation:none}}
   @media(max-width:1040px){.nf-rev{right:0}.nf-rem{left:0}}
   @media(max-width:900px){.hero .grid{grid-template-columns:1fr;gap:32px}.hero .shot{order:-1}.nf-rem{display:none}}
-  @media(max-width:560px){.nfloat{display:none}}
+  /* keep the animated notification pop-ups on mobile too — smaller and tucked to
+     the phone's corners so they still bob without causing horizontal scroll */
+  @media(max-width:560px){
+    .nfloat{max-width:168px;padding:9px 11px;border-radius:13px;animation-duration:4.8s}
+    .nfloat .ni{width:30px;height:30px;border-radius:9px}
+    .nfloat .ni svg{width:15px;height:15px}
+    .nfloat .nt b{font-size:12px}
+    .nfloat .nt small{font-size:11px}
+    .nf-book{top:-10px;left:-2px}
+    .nf-rev{top:auto;bottom:2%;right:-2px}
+    .nf-rem{display:none}
+  }
 
   .trust{border-block:1px solid var(--line);background:var(--soft)}
   .trust .row{display:grid;grid-template-columns:repeat(4,1fr)}
@@ -111,6 +174,8 @@
   @media(max-width:640px){.trust .row{grid-template-columns:1fr 1fr}.trust .cell:nth-child(3){border-left:0}}
 
   section.blk{padding:80px 0}
+  /* Features carousel hugs the hero (it's the first section after it) */
+  #feat-home{padding-top:34px}
   section.blk.alt{background:var(--soft);border-block:1px solid var(--line)}
   .head{max-width:660px;margin:0 auto 46px;text-align:center}
   .head h2{font-size:clamp(28px,4.2vw,44px);margin-top:12px}
@@ -163,6 +228,23 @@
   .feat3 h3{font-size:20px;font-weight:800;margin-top:6px;letter-spacing:-.02em}
   .feat3 p{color:var(--sub);font-size:14.5px;margin:8px auto 0;max-width:32ch}
   @media(max-width:820px){.feat3{grid-template-columns:1fr;gap:44px}}
+  /* featured-tools carousel */
+  .fcar-track{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 22px;scrollbar-width:none}
+  .fcar-track::-webkit-scrollbar{display:none}
+  .fcar .fcell{flex:none;width:min(300px,82vw);scroll-snap-align:center;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 22px 22px;box-shadow:var(--shadow-sm)}
+  .fcar .fcell .shot img{width:min(200px,68%)}
+  .fcar .fcell .tag{margin-top:16px;font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+  .fcar .fcell h3{font-size:19px;font-weight:800;margin-top:6px;letter-spacing:-.02em}
+  .fcar .fcell p{color:var(--sub);font-size:14px;margin:8px auto 0;max-width:30ch}
+  .fcar-ctrl{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:2px}
+  /* side arrows on the features carousel */
+  .fcar-viewport{position:relative}
+  .fcar-arrow{position:absolute;top:calc(50% - 20px);transform:translateY(-50%);z-index:6;width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(6px);display:grid;place-items:center;color:var(--ink);box-shadow:var(--shadow-sm);transition:border-color .15s,color .15s,transform .15s}
+  .fcar-arrow:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-50%) scale(1.06)}
+  .fcar-arrow svg{width:20px;height:20px}
+  .fcar-prev{left:-14px}
+  .fcar-next{right:-14px}
+  @media(max-width:900px){.fcar-prev{left:2px}.fcar-next{right:2px}}
 
   /* interactive feature explorer: left list -> right detail */
   .fexp{display:grid;grid-template-columns:.82fr 1.18fr;gap:34px;align-items:start;max-width:1060px;margin:0 auto}
@@ -214,6 +296,18 @@
   .fr-body li{display:flex;gap:11px;color:var(--ink-2);font-size:15.5px;align-items:flex-start}
   .fr-body b{font-weight:700;color:var(--ink)}
   @media(max-width:820px){.frow{grid-template-columns:1fr;gap:26px}.frow.rev .fr-shot{order:-1}}
+  /* subtle features animation: directional slide-in reveal + gentle float (features page) */
+  .fr-shot.reveal{transform:translateX(-46px)}
+  .frow.rev .fr-shot.reveal{transform:translateX(46px)}
+  .frow .fr-shot.reveal.in{transform:none}
+  .frow.rev .fr-shot.reveal.in{transform:none}
+  .fr-body.reveal{transition-delay:.12s}
+  .frow .fr-shot .shot img{animation:ffloat 6.5s ease-in-out infinite}
+  .frow:nth-of-type(2) .fr-shot .shot img{animation-delay:.9s}
+  .frow:nth-of-type(3) .fr-shot .shot img{animation-delay:1.8s}
+  .frow:nth-of-type(4) .fr-shot .shot img{animation-delay:2.6s}
+  @keyframes ffloat{50%{transform:translateY(-12px)}}
+  @media(prefers-reduced-motion:reduce){.frow .fr-shot .shot img{animation:none}}
 
   /* gallery */
   .gallery{display:flex;gap:8px;overflow-x:auto;padding:6px 4px 24px;scroll-snap-type:x mandatory;scrollbar-width:none}
@@ -234,6 +328,36 @@
   .plan li{display:flex;gap:10px;color:var(--ink-2);font-size:14.5px;align-items:flex-start}
   .plan li .chk{width:20px;height:20px}
   @media(max-width:720px){.plans{grid-template-columns:1fr}}
+  /* monthly / yearly billing toggle */
+  .price-toggle{display:flex;justify-content:center;gap:4px;width:max-content;max-width:100%;margin:0 auto 26px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:5px}
+  .pt-btn{border:0;background:none;font-family:inherit;font-weight:750;font-size:14px;color:var(--sub);padding:9px 20px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .15s,color .15s}
+  .pt-btn.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm)}
+  .pt-save{font-size:11px;font-weight:800;color:#0f9d58;background:color-mix(in srgb,#0f9d58 15%,transparent);padding:2px 7px;border-radius:999px}
+  .plan .pro-note{font-size:12.5px;color:var(--faint);margin-top:2px}
+  /* single consolidated pricing box */
+  .plans-single{display:block}
+  .plan-single{max-width:600px;margin:0 auto;padding:34px 36px}
+  .plan-single .eyebrow{margin-bottom:6px}
+  .single-trial{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .single-trial .st-big{font-size:clamp(40px,6.5vw,58px);font-weight:800;letter-spacing:-.03em;line-height:1}
+  .single-trial .st-sub{font-size:clamp(18px,2.4vw,22px);font-weight:750;color:var(--sub)}
+  .plan-single>ul{margin:20px 0 4px}
+  .plan-single>ul li{font-size:15px}
+  .single-price{margin-top:22px;background:linear-gradient(150deg,var(--blue),var(--blue-2));border-radius:18px;padding:22px 24px 24px;color:#fff;text-align:center;box-shadow:0 20px 44px -22px rgba(22,76,211,.8)}
+  .single-price .sp-line{font-size:19px;font-weight:700;color:#eaf1ff}
+  .single-price .sp-line .pro-amt{font-size:34px;font-weight:800;color:#fff;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .single-price .sp-line .pro-per{font-size:15px;color:#cfe0ff;font-weight:700}
+  .single-price .pro-note{color:#cfe0ff;font-size:13px;margin-top:6px}
+  .single-cta{margin-top:16px;width:100%;justify-content:center;background:#fff;color:var(--blue);font-weight:800;font-size:15px;padding:14px}
+  .single-cta:hover{transform:translateY(-2px);background:#eef3ff}
+  /* "one detail pays for X months" mini-calculator */
+  .pay-calc{max-width:520px;margin:0 auto 22px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);padding:22px 26px;text-align:center}
+  .pay-calc .pc-q{display:block;font-size:14.5px;font-weight:700;color:var(--ink-2);margin-bottom:12px}
+  .pay-calc .pc-q b{color:var(--blue);font-variant-numeric:tabular-nums}
+  .pay-calc .pd-range{width:100%;accent-color:var(--blue);height:6px}
+  .pay-calc .pc-res{margin-top:14px;font-size:15.5px;color:var(--ink-2);font-weight:600}
+  .pay-calc .pc-res b{color:var(--ink);font-weight:800}
+  .pay-calc .pc-res .pd-months{color:var(--blue);font-variant-numeric:tabular-nums}
 
   /* calculator */
   .calc{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:40px;box-shadow:var(--shadow-sm);max-width:960px;margin:0 auto}
@@ -254,6 +378,39 @@
   .calc .tsaved b{font-size:21px;font-weight:800;display:block;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
   .calc .tsaved small{color:#dbe7ff;font-size:12.5px}
   @media(max-width:800px){.calc{grid-template-columns:1fr;padding:26px}}
+  /* merged time-back breakdown inside the interactive calc panel */
+  .ts-merged{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line)}
+  .ts-merged .tm-lbl{text-align:left;color:var(--sub);font-size:13px;font-weight:650;margin-bottom:14px}
+  .ts-merged .tm-lbl b{color:var(--ink);font-weight:800}
+  .ts-merged .tm-slider{max-width:460px;margin:0 auto 20px}
+  .ts-merged .tm-slider label{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:9px;color:var(--ink-2)}
+  .ts-merged .tm-slider label b{color:var(--blue);font-variant-numeric:tabular-nums}
+  .ts-merged .tm-slider input[type=range]{width:100%;accent-color:var(--blue);height:6px}
+  /* tighten the calc into one continuous panel */
+  .calc{align-items:stretch}
+  .calc .tsaved{margin-top:16px}
+  .calc .result{display:flex;flex-direction:column}
+  .result-cta{margin-top:auto;justify-content:center;background:#fff;color:var(--blue);font-weight:800;border-radius:13px;padding:14px;margin-top:auto}
+  .result-cta:hover{transform:translateY(-2px);background:#f2f6ff}
+  @media(max-width:800px){.result-cta{margin-top:18px}}
+  /* interactive time-saved breakdown */
+  .tsplit{max-width:960px;margin:34px auto 0;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:var(--shadow-sm);padding:32px;display:grid;grid-template-columns:1fr 1.1fr;gap:34px;align-items:center}
+  .tsplit-head h3{font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-.02em;margin-top:8px}
+  .tsplit-head h3 span{background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+  .tsplit-head p{color:var(--sub);font-size:15px;margin-top:12px;max-width:38ch}
+  .tsgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tsblock{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px 15px;background:var(--soft)}
+  .tsblock .tsi{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:19px;flex:none}
+  .tsblock b{display:block;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .tsblock small{color:var(--sub);font-size:12.5px}
+  .tsblock small em{color:var(--faint);font-style:normal;font-weight:700}
+  .tsblock.soon{opacity:.72}
+  /* number stays in its proper stacked block; only a soft background reacts */
+  .tsblock{transition:background .3s ease,border-color .3s ease}
+  .tsblock.tspop{background:var(--blue-soft);border-color:color-mix(in srgb,var(--blue) 30%,var(--line))}
+  @media(prefers-reduced-motion:reduce){.tsblock.tspop{transition:none}}
+  @media(max-width:820px){.tsplit{grid-template-columns:1fr;gap:24px;padding:24px}}
+  @media(max-width:480px){.tsgrid{grid-template-columns:1fr}}
 
   /* blogs */
   .blogs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -269,6 +426,40 @@
   .post .b{padding:20px;display:flex;flex-direction:column;flex:1}.post h3{font-size:17px;font-weight:750;letter-spacing:-.02em}.post p{color:var(--sub);font-size:14px;margin-top:8px}
   .post .more{color:var(--blue);font-weight:700;font-size:13.5px;margin-top:auto;padding-top:12px;display:inline-block}
   @media(max-width:900px){.blogs{grid-template-columns:1fr}}
+  /* featured YouTube card at the top of the blog */
+  .blog-feature{display:grid;grid-template-columns:1.05fr .95fr;gap:0;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--card);box-shadow:var(--shadow-sm);margin-bottom:22px;transition:transform .18s,box-shadow .2s;color:inherit}
+  .blog-feature:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+  .bf-media{position:relative;min-height:260px;background:radial-gradient(120% 120% at 30% 20%,#ff4d4d,#c4302b 55%,#8b0000)}
+  .bf-media::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 70% 80%,rgba(0,0,0,.28),transparent 60%)}
+  .bf-badge{position:absolute;top:16px;left:16px;z-index:2;display:inline-flex;align-items:center;gap:7px;background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;letter-spacing:.04em;padding:6px 12px;border-radius:999px}
+  .bf-badge svg{width:16px;height:16px;fill:#fff}
+  .bf-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;width:78px;height:78px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 14px 34px rgba(0,0,0,.35);transition:transform .18s}
+  .blog-feature:hover .bf-play{transform:translate(-50%,-50%) scale(1.07)}
+  .bf-play svg{width:32px;height:32px;fill:#c4302b;margin-left:5px}
+  .bf-body{padding:34px 36px;display:flex;flex-direction:column;justify-content:center}
+  .bf-body h3{font-size:clamp(24px,3.4vw,32px);font-weight:800;letter-spacing:-.02em;margin-top:8px}
+  .bf-body p{color:var(--sub);font-size:16px;margin-top:12px;max-width:44ch}
+  .bf-cta{margin-top:22px;align-self:flex-start;display:inline-flex;align-items:center;gap:9px;background:#c4302b;color:#fff;font-weight:800;font-size:14.5px;padding:12px 20px;border-radius:12px;white-space:nowrap;transition:background .2s,transform .15s}
+  .blog-feature:hover .bf-cta{background:#e03a30;transform:translateX(2px)}
+  @media(max-width:760px){.blog-feature{grid-template-columns:1fr}.bf-media{min-height:200px}.bf-body{padding:26px 24px}}
+  /* social media section (bottom) */
+  .socials{border-top:1px solid var(--line);background:var(--soft);padding:64px 0}
+  .soc-head{text-align:center;max-width:620px;margin:0 auto 34px}
+  .soc-head h2{font-size:clamp(26px,3.8vw,38px);margin-top:12px}
+  .soc-head p{color:var(--sub);font-size:17px;margin-top:12px}
+  .soc-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;max-width:840px;margin:0 auto}
+  .soc{display:inline-flex;align-items:center;gap:11px;padding:14px 22px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:750;font-size:15px;box-shadow:var(--shadow-sm);transition:transform .16s,border-color .16s,color .16s}
+  .soc:hover{transform:translateY(-3px)}
+  .soc svg{width:22px;height:22px}
+  .soc .si{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff}
+  .soc .si svg{width:19px;height:19px;fill:#fff}
+  .soc-ig .si{background:linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888)}
+  .soc-yt .si{background:#ff0000}
+  .soc-tt .si{background:#000}
+  .soc-fb .si{background:#1877f2}
+  .soc-x .si{background:#000}
+  .soc-ig:hover{border-color:#dc2743}.soc-yt:hover{border-color:#ff0000}.soc-fb:hover{border-color:#1877f2}
+  @media(max-width:560px){.soc{flex:1 1 100%;justify-content:center}}
 
   /* case studies */
   .cases{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -286,11 +477,74 @@
   .statgrid .st{background:var(--card);padding:26px}.statgrid .st .n{font-size:30px;font-weight:800;color:var(--blue);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
   .statgrid .st small{color:var(--sub);font-size:13.5px}
   @media(max-width:820px){.about{grid-template-columns:1fr;gap:30px}}
+  .statgrid-4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:640px){.statgrid-4{grid-template-columns:1fr 1fr}}
   .valgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
   .val{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow-sm)}
   .val .vi{width:44px;height:44px;border-radius:13px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;margin-bottom:14px;font-size:20px}
   .val h4{font-size:18px;font-weight:750}.val p{color:var(--sub);font-size:14.5px;margin-top:8px}
   @media(max-width:820px){.valgrid{grid-template-columns:1fr}}
+  /* about: story timeline */
+  .timeline{list-style:none;margin:0 auto;padding:0;max-width:760px;position:relative}
+  .timeline::before{content:"";position:absolute;left:19px;top:8px;bottom:8px;width:2px;background:var(--line)}
+  .tl-item{position:relative;padding:0 0 22px 56px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-dot{position:absolute;left:12px;top:6px;width:16px;height:16px;border-radius:50%;background:var(--card);border:3px solid var(--blue);z-index:1}
+  .tl-item.is-key .tl-dot{background:var(--blue)}
+  .tl-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow-sm)}
+  .tl-item.is-key .tl-card{border-color:var(--blue);box-shadow:var(--shadow)}
+  .tl-year{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--blue)}
+  .tl-card h4{font-size:18px;font-weight:750;margin-top:6px;letter-spacing:-.01em}
+  .tl-card p{color:var(--sub);font-size:14.5px;margin-top:8px;line-height:1.55}.tl-card p b{color:var(--ink);font-weight:800}
+  /* about: meet the founders */
+  .founders-lead{display:grid;grid-template-columns:.9fr 1.1fr;gap:32px;align-items:center;max-width:920px;margin:0 auto 26px}
+  .fl-photo{aspect-ratio:16/10;border-radius:20px;background:linear-gradient(135deg,var(--blue-soft),var(--tint));border:1px dashed color-mix(in srgb,var(--blue) 32%,var(--line));display:grid;place-items:center;color:var(--faint);font-weight:700;font-size:14px;text-align:center;padding:14px}
+  .fl-photo small{font-weight:600;font-size:12px}
+  .fl-copy p{color:var(--sub);font-size:16px;line-height:1.6}.fl-copy p b{color:var(--ink);font-weight:800}
+  .founders-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:920px;margin:0 auto}
+  .founder{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:var(--shadow-sm);text-align:center}
+  .founder .f-photo{width:96px;height:96px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(140deg,var(--blue-2),var(--blue));color:#fff;display:grid;place-items:center;font-weight:800;font-size:34px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.25)}
+  .founder h4{font-size:19px;font-weight:800;letter-spacing:-.01em}
+  .founder .f-role{color:var(--blue);font-size:13px;font-weight:700;margin-top:2px}
+  .founder p{color:var(--sub);font-size:14.5px;margin-top:12px;line-height:1.55}
+  @media(max-width:760px){.founders-lead{grid-template-columns:1fr}.founders-grid{grid-template-columns:1fr}}
+  /* FAQ page: still-have-questions */
+  .faq-more{max-width:760px;margin:34px auto 0;text-align:center;background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:34px}
+  .faq-more h3{font-size:22px;font-weight:800}
+  .faq-more p{color:var(--sub);font-size:15.5px;margin-top:10px}
+  .faq-more-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+  /* coming soon (features page) */
+  .soon-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .soon{position:relative;background:var(--card);border:1px dashed color-mix(in srgb,var(--blue) 34%,var(--line));border-radius:18px;padding:26px 24px}
+  .soon .si{font-size:30px;line-height:1;margin-bottom:14px}
+  .soon h4{font-size:18px;font-weight:750;letter-spacing:-.01em}
+  .soon p{color:var(--sub);font-size:14.5px;margin-top:8px}
+  .soon-badge{position:absolute;top:16px;right:16px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);background:var(--blue-soft);border-radius:999px;padding:4px 10px}
+  .soon-foot{text-align:center;color:var(--sub);font-size:15px;margin-top:26px}
+  .soon-foot a{color:var(--blue);font-weight:700}
+  @media(max-width:900px){.soon-grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.soon-grid{grid-template-columns:1fr}}
+  /* Coming Soon / roadmap page — status lanes */
+  .road{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:start}
+  .lane-h{display:flex;align-items:center;gap:9px;margin-bottom:16px;padding:0 2px}
+  .lane-dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .lane-h b{font-size:15px;font-weight:800;letter-spacing:-.01em}
+  .lane-h small{color:var(--faint);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-left:auto}
+  .rfeat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm);margin-bottom:14px;transition:transform .18s,border-color .18s}
+  .rfeat:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--blue) 34%,var(--line))}
+  .rfeat .rf-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .rfeat .ri{width:44px;height:44px;border-radius:12px;background:var(--blue-soft);display:grid;place-items:center;font-size:23px;line-height:1}
+  .rfeat .rbadge{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:999px}
+  .rfeat h4{font-size:16.5px;font-weight:750;letter-spacing:-.01em;margin-top:13px}
+  .rfeat p{color:var(--sub);font-size:14px;margin-top:6px;line-height:1.5}
+  .road-note{text-align:center;color:var(--sub);font-size:14px;margin-top:26px}
+  .road-note a{color:var(--blue);font-weight:700}
+  .road-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .road-btn-w{background:#fff;color:var(--blue);font-weight:800}
+  .road-btn-w:hover{transform:translateY(-2px);background:#eef3ff}
+  .road-btn-o{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.55);font-weight:700}
+  .road-btn-o:hover{border-color:#fff}
+  @media(max-width:820px){.road{grid-template-columns:1fr}}
 
   /* faq */
   .faq{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
@@ -305,6 +559,13 @@
   .rev-track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 20px;scrollbar-width:none}
   .rev-track::-webkit-scrollbar{display:none}
   .rcard{flex:none;width:min(360px,84vw);scroll-snap-align:center;border:1px solid var(--line);border-radius:20px;padding:26px;background:var(--card);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:14px}
+  /* On phones one card shows at a time. Pad the track by the side slack so the
+     active card (including the first/last) actually centers instead of pinning
+     to the left edge with text clipped on the right. */
+  @media(max-width:640px){
+    .rev-track{padding-inline:calc(50% - min(360px,84vw)/2)}
+    .fcar-track{padding-inline:calc(50% - min(300px,82vw)/2)}
+  }
   .rcard .rtop{display:flex;align-items:center;gap:12px}
   .dp{width:50px;height:50px;border-radius:50%;flex:none;display:grid;place-items:center;background:linear-gradient(140deg,var(--blue-2),var(--blue));color:#fff;font-weight:800;font-size:17px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
   .rcard .who b{display:block;font-size:15px}.rcard .who small{color:var(--sub);font-size:12.5px}
@@ -312,7 +573,13 @@
   .rcard blockquote{margin:0;font-size:15.5px;line-height:1.55;color:var(--ink-2);font-weight:500}
   .as-pill{margin-top:auto;display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--sub);background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:5px 11px;align-self:flex-start}
   .as-pill svg{width:13px;height:13px;fill:currentColor}
-  .rev-ctrl{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:8px}
+  .rev-ctrl{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px}
+  /* reviews carousel: arrows on the sides (like the Key Features section) */
+  .rev-viewport{position:relative}
+  .rev-arrow{position:absolute;top:calc(50% - 12px);transform:translateY(-50%);z-index:6;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(6px);box-shadow:var(--shadow-sm)}
+  .rev-prev{left:-16px}
+  .rev-next{right:-16px}
+  @media(max-width:900px){.rev-prev{left:0}.rev-next{right:0}}
   .arrow{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;color:var(--ink)}
   .arrow:hover{border-color:var(--blue);color:var(--blue)}
   .dots{display:flex;gap:8px}
@@ -354,9 +621,21 @@
   @media(prefers-reduced-motion:reduce){.pin-glow{animation:none;opacity:.25}}
   .pinlabel{fill:var(--ink);font-size:15px;font-weight:700;font-family:var(--sans)}
   /* real US states map */
+  #map svg .pins{display:none}
+  .coverage-dots circle{fill:#f5453a;stroke:#111;stroke-width:.4}
+  .coverage-dots circle{opacity:.85}
+  /* real interactive map (Leaflet) — shown on the live site */
+  .realmap{display:none;height:540px;width:100%;border-radius:18px;overflow:hidden;background:var(--soft)}
+  .realmap.on{display:block}
+  .map-wrap.has-realmap .us-fallback,.map-wrap.has-realmap .map-cap{ }
+  .map-wrap.has-realmap .us-fallback{display:none}
+  .map-wrap .map-stats{z-index:1200}
+  .leaflet-container{font-family:var(--sans)}
+  @media(max-width:640px){.realmap{height:400px}}
+  :root[data-theme="dark"] .coverage-dots circle{fill:#ff5b50;opacity:.9}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .coverage-dots circle{fill:#ff5b50;opacity:.9}}
   .us-real{width:100%;height:auto;display:block}
   .us-real .states path{fill:var(--tint);stroke:var(--bg);stroke-width:1;transition:fill .3s}
-  .us-real .states #AZ,.us-real .states #TX,.us-real .states #FL,.us-real .states #CO,.us-real .states #GA,.us-real .states #NC{fill:var(--blue)}
   .us-real .pin{fill:#fff;stroke:rgba(8,22,64,.28);stroke-width:1}
   .us-real .pin-glow{fill:#fff;opacity:.6}
   .map-cap{text-align:center;color:var(--sub);font-size:14px;margin-top:16px}
@@ -394,12 +673,35 @@
   .col-old .lbl{color:var(--faint)}.col-old h3{color:var(--ink-2)}.col-old li{color:var(--sub)}
   .col-old .x{flex:none;width:21px;height:21px;border-radius:50%;background:color-mix(in srgb,var(--faint) 22%,transparent);color:var(--faint);display:grid;place-items:center;font-size:11px;font-weight:900;margin-top:1px}
   .col-old .q{color:var(--faint);font-style:italic}
+  .col-old .old-apps-lbl{margin-top:24px;color:var(--faint);font-size:13.5px;font-weight:700;letter-spacing:.02em}
+  .col-old .old-apps{flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:minmax(76px,1fr);gap:14px;margin-top:18px}
+  .col-old .oa{width:100%;height:100%;min-height:88px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-sm);display:grid;place-items:center;font-size:clamp(38px,4.6vw,58px);line-height:1;transform:rotate(var(--r,0deg));filter:grayscale(.45);opacity:.92;transition:transform .18s,filter .18s}
+  .col-old .oa:hover{transform:rotate(0deg) translateY(-4px);filter:grayscale(0);opacity:1}
   .col-new{background:linear-gradient(180deg,var(--card),var(--soft));border:1.5px solid var(--blue);box-shadow:var(--shadow)}
   .col-new::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--blue),var(--sky))}
   .col-new .lbl{color:var(--blue)}.col-new li{color:var(--ink-2)}.col-new .q{color:var(--blue)}
   .compare .chk{flex:none;width:21px;height:21px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:900;margin-top:1px}
   .col-new .ph{margin-top:22px;display:flex;justify-content:center}.col-new .ph img{width:54%;filter:drop-shadow(0 26px 44px rgba(8,22,64,.28))}
   @media(max-width:820px){.compare{grid-template-columns:1fr}}
+
+  /* features-page "what problem are you solving?" filter */
+  .prob{max-width:1000px;margin:0 auto}
+  .prob-tabs{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:30px}
+  .prob-tab{border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:13px 19px;font-weight:750;font-size:14.5px;color:var(--ink-2);display:flex;align-items:center;gap:10px;transition:border-color .18s,background .18s,color .18s;box-shadow:var(--shadow-sm);cursor:pointer;font-family:inherit}
+  .prob-tab .pi{width:32px;height:32px;border-radius:9px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;flex:none;transition:.18s}.prob-tab .pi svg{width:17px;height:17px}
+  .prob-tab:hover{border-color:color-mix(in srgb,var(--blue) 45%,var(--line))}
+  .prob-tab.on{border-color:var(--blue);background:var(--blue);color:#fff}
+  .prob-tab.on .pi{background:rgba(255,255,255,.22);color:#fff}
+  .prob-panel{display:grid;grid-template-columns:1fr .82fr;gap:40px;align-items:center;border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,var(--soft),var(--card));box-shadow:var(--shadow-sm);padding:36px;animation:routeIn .4s ease}
+  .prob-screens{display:flex;justify-content:center;gap:14px;order:2}
+  .prob-screens .shot img{width:min(180px,42vw)}
+  .prob-screens .shot:nth-child(2){margin-top:30px}
+  .prob-body .tag{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+  .prob-body h3{font-size:clamp(22px,3vw,30px);font-weight:800;margin-top:8px;letter-spacing:-.02em}
+  .prob-body>p{color:var(--sub);font-size:16px;margin-top:12px;max-width:40ch}
+  .prob-body ul{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-direction:column;gap:12px}
+  .prob-body li{display:flex;gap:11px;color:var(--ink-2);font-size:15px;align-items:flex-start}
+  @media(max-width:820px){.prob-panel{grid-template-columns:1fr;gap:26px}.prob-screens{order:-1}.prob-screens .shot:nth-child(2){margin-top:0}}
 
   /* sticky-scroll feature showcase (V7 creative features page) */
   .sticky-feat{display:grid;grid-template-columns:.82fr 1.18fr;gap:54px;align-items:start;max-width:1060px;margin:0 auto}
@@ -436,28 +738,54 @@
   .final p{color:#dbe7ff;font-size:17px;max-width:42ch;margin:14px auto 26px}
   .final .stores{justify-content:center}
 
-  footer{padding:44px 0 30px;color:var(--sub);font-size:13.5px;border-top:1px solid var(--line)}
-  .foot-top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:24px;padding-bottom:28px;border-bottom:1px solid var(--line)}
-  .foot-top h4{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:0 0 12px}
-  .foot-top a{display:block;padding:5px 0;color:var(--ink-2);font-size:14px;background:none;border:0;font-family:inherit;text-align:left;cursor:pointer}.foot-top a:hover{color:var(--blue)}
-  .foot-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:20px}
-  @media(max-width:760px){.foot-top{grid-template-columns:1fr 1fr}}
+  /* dark footer (matches detailconnect.app) */
+  footer{background:var(--navy);color:#c2cff0;padding:58px 0 26px;font-size:14px}
+  :root[data-theme="dark"] footer{background:#04102e}
+  .foot-top{display:grid;grid-template-columns:1.6fr 1fr 1.15fr 1fr;gap:28px;padding-bottom:34px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .foot-brand .foot-logo{display:inline-flex;align-items:center;gap:8px}
+  .foot-brand .foot-logo img{height:26px;width:auto;filter:brightness(0) invert(1)}
+  .foot-llc{color:#fff;font-weight:800;font-size:18px;letter-spacing:-.02em}
+  .foot-tag{color:#9fb0da;max-width:32ch;margin-top:14px;font-size:14px;line-height:1.55}
+  .foot-socials{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+  .foot-socials a{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.08);display:grid;place-items:center;color:#fff;transition:background .15s,transform .15s}
+  .foot-socials a:hover{background:rgba(255,255,255,.2);transform:translateY(-2px)}
+  .foot-socials svg{width:19px;height:19px;fill:#fff}
+  .foot-top h4{font-size:16px;font-weight:750;color:#fff;margin:0 0 14px;letter-spacing:-.01em;text-transform:none}
+  .foot-col a{display:block;padding:6px 0;color:#c2cff0;font-size:14px;background:none;border:0;font-family:inherit;text-align:left;cursor:pointer;transition:color .15s}
+  .foot-col a:hover{color:#fff}
+  .foot-dl{color:#fff;font-weight:700;margin:18px 0 10px;font-size:14px}
+  .foot-stores{display:flex;gap:10px;flex-wrap:wrap}
+  .foot-stores img{height:38px;width:auto}
+  .foot-bottom{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:22px;color:#9fb0da;font-size:13.5px}
+  .foot-vet{display:inline-flex;align-items:center;gap:8px;color:#fff;font-weight:700}
+  .foot-vet .foot-flag{font-size:17px;line-height:1}
+  @media(max-width:820px){.foot-top{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.foot-top{grid-template-columns:1fr;gap:26px}.foot-bottom{flex-direction:column;align-items:flex-start;gap:12px}}
 
   .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s,transform .7s}
   .reveal.in{opacity:1;transform:none}
+  /* force-visible: snaps content on with NO transition — used as a fail-safe so a
+     stalled/throttled transition can never leave a section stuck invisible */
+  .reveal.force{opacity:1!important;transform:none!important;transition:none!important}
   @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
 </style>
 
+<div class="topbar"><div class="wrap tb-row">
+  <div class="tb-left">
+    <a class="tb-item tb-phone" href="tel:8032912792"><span class="tb-ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8 9.6a16 16 0 0 0 6 6l1.1-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/></svg></span>803.291.2792</a>
+    <span class="tb-item tb-vet"><span class="tb-flag">🇺🇸</span> Veteran Owned</span>
+  </div>
+</div></div>
 <header><div class="wrap"><nav>
   <a class="brand" href="#home"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/671a12872a8036f35a6425ac_image%203.webp" alt="Detail Connect"></a>
   <div class="navlinks" id="navlinks">
     <a href="#blogs" data-nav="blogs">Blogs</a>
     <a href="#pricing" data-nav="pricing">Pricing</a>
     <a href="#features" data-nav="features">Features</a>
+    <a href="#roadmap" data-nav="roadmap">Coming Soon</a>
     <a href="#about" data-nav="about">About us</a>
     <a href="#cases" data-nav="cases">Case Studies</a>
     <a href="#faq" data-nav="faq">FAQ</a>
-    <a href="#reviews" data-nav="reviews">Reviews</a>
   </div>
   <div class="navsp"></div>
   <button class="iconbtn" id="themeBtn" aria-label="Toggle dark mode"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
@@ -471,14 +799,11 @@
     <div>
       <h1>Book more cars. Run <span>less</span> paperwork.</h1>
       <p class="lede">Detail Connect gives mobile detailers a booking link, calendar, invoices, and revenue tracking — everything to run the business, in one app.</p>
-      <div class="social">
-        <div class="sp"><b>17,400+</b> downloads</div>
-        <div class="sp"><span class="gold">★★★★★</span> Over 1,000 5-star reviews</div>
-      </div>
       <div class="stores">
         <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb25cd0f207d39678716d4_app-store.webp" alt="Download on the App Store"></a>
         <a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb24fde2ab979a9fb05c3e_google-play.webp" alt="Get it on Google Play"></a>
       </div>
+      <div class="hero-rating"><span class="hr-stars">★★★★★</span> <b>1,000+</b> five-star reviews</div>
     </div>
     <div class="shot floaty">
       <span class="glow"></span>
@@ -487,50 +812,57 @@
       <div class="nfloat nf-rev"><span class="ni" style="background:var(--teal)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="nt"><b>$3,680 booked</b><small>in jobs this week</small></span></div>
       <div class="nfloat nf-rem"><span class="ni" style="background:var(--amber)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg></span><span class="nt"><b>80 reminders sent</b><small>automatically this week</small></span></div>
     </div>
-  </div></section>
+  </div>
+  </section>
 
-  <div class="trust"><div class="wrap"><div class="row">
-    <div class="cell"><span class="te">🏆</span><small>Highest rated app for detailers</small></div>
-    <div class="cell"><span class="te">📈</span><small>Automate your detailing business</small></div>
-    <div class="cell"><span class="te">📞</span><small>Live customer support</small></div>
-    <div class="cell"><span class="te">📱</span><small>All the tools in 1 app</small></div>
-  </div></div></div>
 
-  <!-- FEATURED TOOLS (3 at a glance) -->
-  <section class="blk"><div class="wrap">
-    <div class="head reveal"><div class="eyebrow">Explore the tools</div><h2>The screens you'll use every day.</h2><p>Booking, services, and invoices — all in one app, seen at a glance.</p></div>
-    <div class="feat3 reveal">
-      <div class="fcell"><div class="shot"><span class="glow"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp" alt="Booking link screen"></div><div class="tag">Booking link</div><h3>One link. Booked 24/7.</h3><p>Clients see your availability and reserve themselves — day or night.</p></div>
-      <div class="fcell"><div class="shot"><span class="glow"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp" alt="Services screen"></div><div class="tag">Services</div><h3>Your menu in seconds.</h3><p>Build packages with prices and durations clients can book directly.</p></div>
-      <div class="fcell"><div class="shot"><span class="glow"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp" alt="Invoices screen"></div><div class="tag">Invoices</div><h3>Finish and get paid.</h3><p>Send a branded invoice the moment you wrap, and track earnings.</p></div>
-    </div>
-    <div class="cta-center" style="margin-top:14px"><a class="btn-link" href="#features">See every feature →</a></div>
+  <!-- FEATURED TOOLS (carousel) -->
+  <section class="blk" id="feat-home"><div class="wrap">
+    <div class="head reveal"><div class="eyebrow">Explore the tools</div><h2>The screens you'll use every day.</h2><p>Swipe, or use the arrows, to see more of the app.</p></div>
+    <div class="fcar reveal" data-fcar></div>
+    <div class="cta-center" style="margin-top:18px"><a class="btn btn-line" href="#features">See every feature →</a></div>
   </div></section>
 
   <!-- HOW IT SAVES TIME -->
   <section class="blk alt" id="features-home"><div class="wrap">
     <div class="head reveal"><div class="eyebrow">Save hours. Every week.</div><h2>How Detail Connect saves you time.</h2><p>Built for detailers who want to spend less time managing their business and more time doing what they love.</p></div>
-    <div class="stgrid">
-      <div class="stcard reveal"><div class="icb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div><h3>Booking link books you 24/7</h3><p>Your custom link lets clients browse your services and book on their own — anytime, day or night.</p><div class="cl"><span class="chk">✓</span>Stop playing phone tag and back-and-forth texts.</div><div class="ph"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp" alt="Booking link"></div></div>
-      <div class="stcard reveal"><div class="icb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></div><h3>Automated messages save you time</h3><p>We automatically remind clients about their appointments so you don't have to.</p><div class="cl"><span class="chk">✓</span>Fewer no-shows. Fewer texts. More time back.</div><div class="ph"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp" alt="Automated reminders"></div></div>
-      <div class="stcard reveal"><div class="icb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15V9M12 15V6M16 15v-3"/></svg></div><h3>Insights &amp; reporting at a glance</h3><p>See your revenue, jobs, and growth in one place so you can make smart decisions quickly.</p><div class="cl"><span class="chk">✓</span>No more spreadsheets. No more guessing.</div><div class="ph"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp" alt="Insights and reporting"></div></div>
-    </div>
-    <div style="text-align:center;margin:46px 0 20px" class="reveal"><div class="eyebrow">Put a number on it</div><h3 style="font-size:clamp(24px,3.6vw,34px);font-weight:800;margin-top:8px;letter-spacing:-.03em">See the time <span style="background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent">and money</span> you'd save.</h3></div>
+    <div style="text-align:center;margin:20px 0 20px" class="reveal"><div class="eyebrow">Put a number on it</div><h3 style="font-size:clamp(24px,3.6vw,34px);font-weight:800;margin-top:8px;letter-spacing:-.03em">See the time <span style="background:linear-gradient(120deg,var(--blue),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent">and money</span> you'd save.</h3></div>
     <div class="calc reveal">
       <div>
         <div class="ctrl"><label>Jobs per week <b><span id="hJobs">12</span></b></label><input id="hrJobs" type="range" min="1" max="40" value="12" aria-label="Jobs per week"></div>
         <div class="ctrl"><label>Average ticket <b>$<span id="hTicket">160</span></b></label><input id="hrTicket" type="range" min="50" max="500" step="5" value="160" aria-label="Average ticket"></div>
         <p class="sub">Detail Connect handles booking, reminders, and invoicing so more slots actually get filled — and the admin runs itself.</p>
+        <div class="ts-merged">
+          <div class="tm-lbl">Where those <b>hours</b> come from — drag the slider above</div>
+          <div class="tsgrid">
+            <div class="tsblock"><span class="tsi" style="background:#e8eeff;color:var(--blue)">📞</span><div><b id="tsCall">~0h</b><small>Calling clients</small></div></div>
+            <div class="tsblock"><span class="tsi" style="background:#dcfaf1;color:var(--teal)">📱</span><div><b id="tsText">~0h</b><small>Texting clients</small></div></div>
+            <div class="tsblock"><span class="tsi" style="background:#fff2df;color:var(--amber)">🧾</span><div><b id="tsInv">~0h</b><small>Writing invoices</small></div></div>
+            <div class="tsblock"><span class="tsi" style="background:#f2ecff;color:#7a3ff2">📊</span><div><b id="tsProfit">~0h</b><small>Calculating profit</small></div></div>
+          </div>
+        </div>
       </div>
       <div class="result">
         <div class="rlabel">Estimated yearly revenue</div>
         <div class="big" id="hYear">$0</div>
         <div class="rrow"><div class="rcard2"><div class="n" id="hWeek">$0</div><small>per week</small></div><div class="rcard2"><div class="n" id="hMonth">$0</div><small>per month</small></div></div>
-        <div class="tsaved"><span class="tsi">⏱️</span><div><b id="hSaved">~0h</b><small>estimated time saved on admin work / month</small></div></div>
+        <div class="tsaved"><span class="tsi">⏱️</span><div><b id="tsTotal">~0h</b><small>Time handed back to you every month</small></div></div>
+        <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn result-cta">Start your free trial →</a>
       </div>
+    </div>
+    <div class="stgrid" style="margin-top:38px">
+      <div class="stcard reveal"><div class="icb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div><h3>Booking link books you 24/7</h3><p>Your custom link lets clients browse your services and book on their own — anytime, day or night.</p><div class="cl"><span class="chk">✓</span>Stop playing phone tag and back-and-forth texts.</div><div class="ph"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp" alt="Booking link"></div></div>
+      <div class="stcard reveal"><div class="icb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></div><h3>Automated messages save you time</h3><p>We automatically remind clients about their appointments so you don't have to.</p><div class="cl"><span class="chk">✓</span>Fewer no-shows. Fewer texts. More time back.</div><div class="ph"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp" alt="Automated reminders"></div></div>
+      <div class="stcard reveal"><div class="icb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15V9M12 15V6M16 15v-3"/></svg></div><h3>Insights &amp; reporting at a glance</h3><p>See your revenue, jobs, and growth in one place so you can make smart decisions quickly.</p><div class="cl"><span class="chk">✓</span>No more spreadsheets. No more guessing.</div><div class="ph"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp" alt="Insights and reporting"></div></div>
     </div>
     <div class="timebar reveal" style="margin-top:30px"><span class="tbi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span><div class="tt"><b>Less admin. More time. More money.</b><small>Detail Connect handles the busywork so you can focus on growing your business.</small></div><a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-solid">Start free trial →</a></div>
     <div class="cta-center" style="margin-top:22px"><a class="btn-link" href="#features">See every feature in detail →</a></div>
+  </div></section>
+
+  <!-- WHAT ARE YOU TRYING TO SOLVE (home) -->
+  <section class="blk" id="prob-home"><div class="wrap">
+    <div class="head reveal"><div class="eyebrow">Find your fix</div><h2>What are you trying to solve?</h2><p>Pick what's slowing you down — we'll show you the tool that handles it.</p></div>
+    <div class="prob reveal" data-prob="home"></div>
   </div></section>
 
   <!-- WHY MAKE THE SWITCH -->
@@ -550,6 +882,17 @@
           <li><span class="x">✕</span>Easy to lose track of customers and jobs</li>
         </ul>
         <div class="q">“I'll just text them.”</div>
+        <div class="old-apps-lbl">Juggling all of these:</div>
+        <div class="old-apps">
+          <span class="oa" style="--r:-6deg" title="Calendar">📅</span>
+          <span class="oa" style="--r:5deg" title="Text messages">💬</span>
+          <span class="oa" style="--r:-3deg" title="Notes">📝</span>
+          <span class="oa" style="--r:7deg" title="Pen &amp; paper">📋</span>
+          <span class="oa" style="--r:-5deg" title="Phone">📱</span>
+          <span class="oa" style="--r:4deg" title="Spreadsheet">📊</span>
+          <span class="oa" style="--r:-2deg" title="Invoices">🧾</span>
+          <span class="oa" style="--r:6deg" title="Contacts">📇</span>
+        </div>
       </div>
       <div class="col col-new">
         <div class="lbl">The Detail Connect way</div>
@@ -576,6 +919,7 @@
   <!-- BLOGS (compact) -->
   <section class="blk" id="blogs-home"><div class="wrap">
     <div class="head reveal"><div class="eyebrow">From the blog</div><h2>Tips to grow your detailing business.</h2></div>
+    <div class="reveal" data-blogfeature></div>
     <div class="blogs" data-bloghome></div>
     <div class="cta-center"><a class="btn-link" href="#blogs">Read the blog →</a></div>
   </div></section>
@@ -583,7 +927,7 @@
   <!-- PRICING (compact) -->
   <section class="blk alt" id="pricing-home"><div class="wrap">
     <div class="head reveal"><div class="eyebrow">Simple &amp; fair</div><h2>Start free. Upgrade when you grow.</h2></div>
-    <div class="plans reveal" data-plans></div>
+    <div class="reveal" data-plans></div>
     <div class="cta-center"><a class="btn-link" href="#pricing">See pricing &amp; earnings calculator →</a></div>
   </div></section>
 
@@ -622,9 +966,7 @@
 
   <!-- BIG SOCIAL PROOF: trusted-by + ticker + reviews + IG -->
   <section class="blk alt" id="reviews">
-    <div class="wrap"><div class="head reveal"><div class="eyebrow">Trusted by detailers</div><h2>Trusted by over <span>17,000</span> detailers.</h2><p>Mobile detailing businesses across all 50 states run their day on Detail Connect.</p></div></div>
-    <div class="wrap"><div class="ticker-label reveal">As featured in</div></div>
-    <div class="ticker reveal"><div class="tick-track" data-ticker></div></div>
+    <div class="wrap"><div class="head reveal"><div class="eyebrow">Loved by detailers</div><h2>1,000+ five-star reviews.</h2><p>Straight from the App Store — real detailers, real results.</p></div></div>
     <div class="wrap">
     <div class="reveal" data-reviews></div>
     <div class="igblock reveal">
@@ -645,10 +987,10 @@
     <div class="map-wrap reveal">
       <div class="map-stats">
         <div class="ms"><b>50</b><small>States</small></div>
-        <div class="ms"><b>800+</b><small>Detailers</small></div>
-        <div class="ms"><b>24/7</b><small>Bookings</small></div>
+        <div class="ms"><b>17,400+</b><small>Detailers</small></div>
+        <div class="ms"><b>$50M+</b><small>Revenue booked</small></div>
       </div>
-      <svg class="us-real" viewBox="0 0 959 593" role="img" aria-label="Map of the United States with the states where detailers use Detail Connect highlighted" preserveAspectRatio="xMidYMid meet"><g class="states"><path id="HI" d="M 233,519 L 235,516 L 237,515 L 238,516 L 236,519 L 233,519 z M 243,516 L 249,518 L 252,518 L 253,514 L 252,511 L 248,510 L 244,512 L 243,516 z M 274,526 L 278,531 L 280,531 L 281,530 L 283,532 L 286,531 L 287,530 L 284,528 L 283,524 L 280,521 L 275,524 L 274,526 z M 294,535 L 295,533 L 300,534 L 301,533 L 307,534 L 307,535 L 304,536 L 300,536 L 294,535 z M 300,540 L 301,544 L 305,542 L 305,541 L 303,539 L 300,538 L 300,540 z M 306,539 L 309,536 L 313,538 L 318,539 L 322,542 L 322,544 L 319,546 L 314,547 L 311,545 L 306,539 z M 323,554 L 325,553 L 328,554 L 336,558 L 339,560 L 341,562 L 343,567 L 347,569 L 346,571 L 343,574 L 338,575 L 337,575 L 334,577 L 331,580 L 329,583 L 327,583 L 324,580 L 323,575 L 324,573 L 322,567 L 320,566 L 320,563 L 322,562 L 325,559 L 325,558 L 323,556 L 323,554 z"/>
+      <div id="realmap" class="realmap"></div><svg class="us-real us-fallback" viewBox="0 0 959 593" role="img" aria-label="Map of the United States with the states where detailers use Detail Connect highlighted" preserveAspectRatio="xMidYMid meet"><g class="states"><path id="HI" d="M 233,519 L 235,516 L 237,515 L 238,516 L 236,519 L 233,519 z M 243,516 L 249,518 L 252,518 L 253,514 L 252,511 L 248,510 L 244,512 L 243,516 z M 274,526 L 278,531 L 280,531 L 281,530 L 283,532 L 286,531 L 287,530 L 284,528 L 283,524 L 280,521 L 275,524 L 274,526 z M 294,535 L 295,533 L 300,534 L 301,533 L 307,534 L 307,535 L 304,536 L 300,536 L 294,535 z M 300,540 L 301,544 L 305,542 L 305,541 L 303,539 L 300,538 L 300,540 z M 306,539 L 309,536 L 313,538 L 318,539 L 322,542 L 322,544 L 319,546 L 314,547 L 311,545 L 306,539 z M 323,554 L 325,553 L 328,554 L 336,558 L 339,560 L 341,562 L 343,567 L 347,569 L 346,571 L 343,574 L 338,575 L 337,575 L 334,577 L 331,580 L 329,583 L 327,583 L 324,580 L 323,575 L 324,573 L 322,567 L 320,566 L 320,563 L 322,562 L 325,559 L 325,558 L 323,556 L 323,554 z"/>
 <path id="AK" d="M 158,454 L 158,539 L 159,540 L 162,540 L 164,539 L 166,539 L 167,542 L 174,549 L 174,551 L 177,549 L 178,549 L 178,546 L 180,545 L 181,544 L 183,543 L 186,545 L 187,548 L 189,549 L 190,551 L 194,553 L 197,559 L 200,563 L 202,566 L 204,570 L 209,571 L 214,573 L 215,578 L 215,581 L 214,584 L 212,587 L 211,586 L 209,583 L 207,581 L 205,580 L 204,581 L 205,584 L 206,587 L 204,588 L 203,586 L 200,585 L 201,586 L 202,588 L 201,589 C 201,589 201,589 200,588 C 200,587 198,584 198,584 L 197,582 C 197,582 197,583 196,583 C 195,583 195,582 195,582 L 197,580 L 195,578 L 195,573 L 194,573 L 193,577 L 192,577 L 191,573 L 191,570 L 190,569 L 190,575 L 190,576 L 189,575 L 185,569 L 183,568 L 182,565 L 181,562 L 179,561 L 179,558 L 181,557 L 181,557 L 178,557 L 175,555 L 172,552 L 167,549 L 163,547 L 165,544 L 165,542 L 163,544 L 160,545 L 156,544 L 151,541 L 145,541 L 144,542 L 138,538 L 136,537 L 133,532 L 130,532 L 126,533 L 127,538 L 128,535 L 129,535 L 127,540 L 130,537 L 131,539 L 127,543 L 126,543 L 125,541 L 124,540 L 123,541 L 120,539 L 117,541 L 115,543 L 112,545 L 107,545 L 107,543 L 110,543 L 110,541 L 108,541 L 109,538 L 111,534 L 111,533 L 112,532 L 116,529 L 117,531 L 120,531 L 118,528 L 115,528 L 110,531 L 107,534 L 105,537 L 104,539 L 100,540 L 97,543 L 97,545 L 99,545 L 100,548 L 97,551 L 91,555 L 83,559 L 81,560 L 75,562 L 70,564 L 72,565 L 70,567 L 70,568 L 67,567 L 64,567 L 63,569 L 62,569 L 62,567 L 59,568 L 56,569 L 53,568 L 50,570 L 46,570 L 44,571 L 43,572 L 41,571 L 38,570 L 36,571 L 35,572 L 33,571 L 33,569 L 36,567 L 42,568 L 47,567 L 49,564 L 52,564 L 54,563 L 56,563 L 58,564 L 59,564 L 61,561 L 64,560 L 68,560 L 69,559 L 70,560 L 70,560 L 72,556 L 76,555 L 78,551 L 80,546 L 82,545 L 82,542 L 80,544 L 77,544 L 76,542 L 75,542 L 74,543 L 74,545 L 72,545 L 71,540 L 70,541 L 69,540 L 68,538 L 64,539 L 62,540 L 59,539 L 61,538 L 61,535 L 61,533 L 62,532 L 64,532 L 63,530 L 63,526 L 62,525 L 61,527 L 55,527 L 53,525 L 53,521 L 51,518 L 51,517 L 53,516 L 53,514 L 54,513 L 53,512 L 52,513 L 51,510 L 52,505 L 56,502 L 59,500 L 61,497 L 64,495 L 66,496 L 67,499 L 69,498 L 72,496 L 74,497 L 75,497 L 76,497 L 79,496 L 80,492 C 80,492 80,489 80,488 C 81,488 81,487 81,487 L 80,485 L 78,486 L 74,487 L 73,486 L 69,485 L 64,485 L 60,481 L 61,477 L 62,475 L 59,473 L 58,469 L 58,468 L 65,468 L 67,468 L 68,469 L 69,469 L 68,467 L 72,466 L 75,467 L 76,468 L 75,470 L 74,471 L 77,473 L 82,475 L 84,474 L 82,470 L 81,466 L 82,465 L 78,464 L 78,462 L 78,461 L 77,457 L 74,452 L 72,448 L 75,446 L 78,446 L 80,447 L 84,447 L 88,443 L 89,440 L 93,438 L 94,438 L 97,438 L 101,436 L 102,436 L 103,436 L 107,436 L 110,433 L 111,433 L 115,436 L 117,438 L 116,439 L 117,440 L 119,438 L 123,439 L 123,442 L 125,444 L 132,444 L 138,449 L 140,448 L 145,450 L 147,450 L 149,449 L 154,451 L 158,454 z M 43,483 L 45,488 L 45,489 L 42,489 L 40,485 L 38,483 L 36,483 L 36,481 L 38,478 L 39,481 L 40,482 L 43,483 z M 40,516 L 44,517 L 48,518 L 49,519 L 47,523 L 44,522 L 41,519 L 40,516 z M 20,502 L 21,505 L 22,506 L 21,507 L 19,504 L 19,502 L 20,502 z M 6,575 L 9,573 L 13,572 L 15,572 L 16,574 L 18,574 L 20,572 L 19,571 L 22,570 L 25,573 L 24,574 L 20,576 L 17,575 L 13,574 L 9,575 L 7,576 L 6,575 z M 55,571 L 57,572 L 59,571 L 57,570 L 55,571 z M 58,574 L 59,571 L 61,572 L 60,574 L 58,574 z M 81,572 L 83,573 L 84,572 L 83,570 L 81,572 z M 90,559 L 91,565 L 94,566 L 99,563 L 104,560 L 102,558 L 102,556 L 100,557 L 97,556 L 99,555 L 101,556 L 105,554 L 105,552 L 103,552 L 104,550 L 101,552 L 96,555 L 91,558 L 90,559 z M 133,539 L 135,538 L 134,536 L 132,537 L 133,539 z"/>
 <path id="FL" d="M 760,439 L 762,446 L 766,456 L 771,466 L 775,472 L 780,477 L 784,481 L 785,484 L 784,485 L 783,487 L 786,494 L 789,497 L 792,502 L 795,508 L 800,516 L 801,524 L 802,536 L 802,538 L 802,541 L 800,542 L 800,544 L 799,546 L 800,549 L 800,551 L 797,554 L 794,555 L 790,555 L 789,557 L 787,558 L 785,558 L 784,557 L 784,554 L 783,550 L 780,545 L 776,543 L 772,543 L 771,544 L 768,539 L 768,536 L 765,532 L 763,531 L 762,533 L 760,533 L 758,527 L 755,524 L 752,518 L 749,515 L 746,511 L 748,509 L 751,504 L 751,502 L 746,501 L 745,502 L 745,502 L 748,503 L 746,508 L 745,508 L 744,504 L 742,499 L 742,497 L 744,492 L 744,482 L 740,479 L 739,476 L 734,474 L 732,474 L 730,471 L 727,469 L 726,466 L 723,465 L 721,461 L 717,460 L 714,458 L 711,458 L 707,459 L 707,461 L 708,462 L 707,463 L 704,463 L 700,467 L 697,469 L 693,469 L 690,470 L 689,467 L 688,465 L 685,464 L 683,463 L 675,459 L 668,457 L 663,458 L 657,458 L 651,460 L 648,461 L 647,453 L 645,451 L 643,449 L 643,446 L 654,445 L 679,442 L 686,441 L 691,441 L 694,445 L 695,447 L 704,447 L 714,447 L 736,445 L 741,445 L 746,445 L 747,448 L 749,449 L 749,444 L 748,440 L 749,438 L 755,439 L 760,439 z M 772,572 L 775,571 L 776,571 L 778,568 L 780,567 L 781,567 L 783,568 L 783,569 L 780,570 L 776,571 L 773,572 L 772,572 z M 786,567 L 787,568 L 790,565 L 795,561 L 799,557 L 801,551 L 802,549 L 803,546 L 802,546 L 801,549 L 799,554 L 796,559 L 792,563 L 788,565 L 786,567 z"/>
 <path id="NH" d="M 881,142 L 882,141 L 883,138 L 880,137 L 880,134 L 876,133 L 876,130 L 868,107 L 864,92 L 863,92 L 862,94 L 861,93 L 860,92 L 859,94 L 859,99 L 859,105 L 861,108 L 861,112 L 858,117 L 855,118 L 855,119 L 856,121 L 856,129 L 855,139 L 855,144 L 856,145 L 856,149 L 855,151 L 856,152 L 873,147 L 875,147 L 877,144 L 881,142 z"/>
@@ -698,41 +1040,41 @@
 <path id="OR" d="M 149,176 L 158,141 L 159,137 L 161,131 L 160,130 L 158,130 L 157,128 L 157,127 L 158,123 L 162,118 L 164,117 L 165,116 L 166,112 L 170,106 L 174,102 L 174,99 L 171,97 L 169,92 L 157,88 L 141,85 L 126,85 L 126,83 L 120,86 L 116,85 L 113,83 L 112,84 L 107,84 L 106,82 L 100,80 L 100,81 L 95,79 L 93,81 L 87,81 L 81,76 L 82,76 L 82,68 L 80,64 L 76,63 L 75,61 L 73,60 L 67,62 L 65,69 L 61,79 L 58,85 L 53,99 L 47,113 L 39,126 L 37,129 L 36,137 L 36,149 L 149,176 z"/>
 <path id="WA" d="M 102,8 L 106,9 L 116,12 L 125,14 L 145,19 L 168,25 L 183,28 L 169,92 L 157,88 L 141,85 L 126,85 L 126,83 L 120,86 L 115,85 L 113,83 L 112,84 L 107,84 L 106,82 L 100,80 L 100,81 L 95,79 L 93,81 L 87,81 L 81,76 L 82,75 L 82,68 L 80,64 L 76,63 L 75,61 L 73,60 L 69,62 L 67,58 L 67,55 L 70,55 L 72,51 L 69,50 L 69,46 L 73,46 L 71,43 L 69,36 L 70,33 L 70,25 L 68,22 L 70,12 L 72,13 L 75,16 L 78,18 L 81,20 L 85,22 L 88,23 L 91,24 L 95,25 L 97,25 L 97,23 L 98,22 L 100,20 L 101,22 L 101,23 L 99,24 L 99,26 L 100,27 L 101,30 L 102,32 L 104,32 L 104,30 L 103,29 L 102,26 L 103,24 L 102,22 L 102,20 L 104,17 L 103,14 L 101,9 L 101,8 L 102,8 z M 93,14 L 95,13 L 95,15 L 97,13 L 99,13 L 100,15 L 98,16 L 99,17 L 98,19 L 97,20 C 97,20 96,20 96,19 C 96,19 97,17 97,17 L 96,16 L 95,18 L 95,18 L 93,16 L 93,14 z"/>
 <path id="CA" d="M 145,382 L 149,382 L 150,380 L 151,377 L 147,376 L 147,375 L 147,373 L 147,373 L 149,372 L 152,369 L 152,364 L 154,361 L 156,359 L 159,357 L 161,356 L 161,354 L 160,353 L 159,352 L 158,346 L 155,341 L 156,338 L 153,337 L 84,233 L 103,165 L 36,149 L 35,154 L 34,161 L 29,173 L 26,176 L 26,177 L 24,178 L 23,182 L 22,185 L 25,189 L 26,194 L 27,197 L 27,204 L 25,207 L 25,212 L 24,216 L 25,220 L 28,225 L 30,229 L 32,233 L 31,237 L 31,237 L 31,239 L 37,246 L 36,248 L 36,250 L 35,252 L 35,260 L 37,264 L 39,267 L 42,267 L 43,270 L 42,274 L 40,275 L 38,275 L 38,279 L 38,282 L 41,286 L 43,292 L 44,296 L 46,299 L 49,305 L 51,308 L 51,311 L 53,312 L 53,314 L 52,316 L 50,323 L 50,325 L 52,328 L 56,328 L 61,330 L 65,332 L 68,332 L 70,335 L 73,340 L 74,342 L 78,345 L 83,345 L 84,347 L 85,351 L 84,351 L 84,352 L 87,353 L 90,353 L 93,352 L 97,356 L 98,358 L 100,362 L 101,365 L 101,375 L 101,377 L 111,378 L 131,381 L 145,382 z M 57,338 L 58,340 L 58,341 L 54,341 L 54,340 L 53,339 L 57,338 z M 58,338 L 60,338 L 63,340 L 66,341 L 65,342 L 61,342 L 59,340 L 58,338 z M 79,358 L 81,361 L 82,362 L 83,362 L 84,361 L 83,359 L 80,357 L 79,357 L 79,358 z M 78,367 L 80,370 L 81,372 L 79,372 L 78,371 C 78,371 77,370 77,369 C 77,369 77,367 77,367 L 78,367 z"/></g><g class="pins"><g transform="translate(337,291)"><circle class="pin-glow" r="7"/><circle class="pin" r="4.5"/></g><g transform="translate(215,353)"><circle class="pin-glow" r="7"/><circle class="pin" r="4.5"/></g><g transform="translate(455,452)"><circle class="pin-glow" r="7"/><circle class="pin" r="4.5"/></g><g transform="translate(752,333)"><circle class="pin-glow" r="7"/><circle class="pin" r="4.5"/></g><g transform="translate(703,383)"><circle class="pin-glow" r="7"/><circle class="pin" r="4.5"/></g><g transform="translate(773,470)"><circle class="pin-glow" r="7"/><circle class="pin" r="4.5"/></g></g></svg>
-      <p class="map-cap"><b>Detailers in Denver, CO · Phoenix, AZ · Austin, TX · Charlotte, NC · Atlanta, GA · Tampa, FL</b> — and growing in all 50 states.</p>
     </div>
   </div></section>
 
-  <section class="blk" style="padding-top:0"><div class="wrap"><div class="final reveal">
-    <div class="eyebrow" style="color:#bfe0ff">Free to start</div>
-    <h2 style="margin-top:10px">Your next booking is one download away.</h2>
-    <p>Join the fastest-growing app for mobile detailers. Veteran-owned and detailer-built.</p>
-    <div class="social">
-      <div class="sp"><b>17,400+</b> downloads</div>
-      <div class="sp"><span class="gold">★★★★★</span> Over 1,000 5-star reviews</div>
-    </div>
-    <div class="stores">
-      <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb25cd0f207d39678716d4_app-store.webp" alt="Download on the App Store"></a>
-      <a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb24fde2ab979a9fb05c3e_google-play.webp" alt="Get it on Google Play"></a>
-    </div>
-  </div></div></section>
 </main>
 
 <!-- ============ FEATURES ============ -->
 <main data-route="features">
   <div class="wrap"><div class="pagehead reveal"><div class="eyebrow">Features</div><h1>Everything to run the day, <span>in one app</span>.</h1><p>Each tool shown on the real app — booking to payment, all from your pocket.</p></div></div>
-  <section class="blk" style="padding-top:16px"><div class="wrap">
-    <div class="sticky-feat" data-sticky></div>
+  <section class="blk" style="padding-top:24px"><div class="wrap">
+    <div class="head reveal"><div class="eyebrow">Start here</div><h2>What are you trying to solve?</h2><p>Pick a goal and see exactly which screens handle it.</p></div>
+    <div class="prob reveal" data-prob></div>
   </div></section>
-  <section class="blk"><div class="wrap"><div class="final reveal">
-    <h2 style="margin-top:0">See it on your phone.</h2><p>Free to start. Set up your booking link in minutes.</p>
-    <div class="stores"><a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb25cd0f207d39678716d4_app-store.webp" alt="App Store"></a><a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb24fde2ab979a9fb05c3e_google-play.webp" alt="Google Play"></a></div>
-  </div></div></section>
+  <section class="blk alt"><div class="wrap">
+    <div class="head reveal"><div class="eyebrow">Every tool</div><h2>A closer look at each tool.</h2><p>Everything you need to run the day — screen by screen.</p></div>
+    <div data-featrows></div>
+  </div></section>
+  <!-- COMING SOON -->
+  <section class="blk"><div class="wrap">
+    <div class="head reveal"><div class="eyebrow">On the roadmap</div><h2>Coming soon.</h2><p>We ship fast — here's what detailers are getting next.</p></div>
+    <div class="soon-grid reveal">
+      <div class="soon"><span class="soon-badge">Coming soon</span><div class="si">🧾</div><h4>Estimates &amp; quotes</h4><p>Send professional estimates that clients can approve and turn into a booking in one tap.</p></div>
+      <div class="soon"><span class="soon-badge">Coming soon</span><div class="si">👥</div><h4>Team accounts</h4><p>Add detailers, assign jobs, and track each person's schedule and earnings from one place.</p></div>
+      <div class="soon"><span class="soon-badge">Coming soon</span><div class="si">🗺️</div><h4>Route optimization</h4><p>Auto-order your day's stops for the shortest drive time and less gas between jobs.</p></div>
+      <div class="soon"><span class="soon-badge">Coming soon</span><div class="si">💳</div><h4>In-app payments &amp; tips</h4><p>Take card payments and tips right in the app — money in your account the moment you finish.</p></div>
+      <div class="soon"><span class="soon-badge">Coming soon</span><div class="si">📣</div><h4>Marketing &amp; referrals</h4><p>Built-in campaigns and referral links that turn happy clients into your best salespeople.</p></div>
+      <div class="soon"><span class="soon-badge">Coming soon</span><div class="si">🔁</div><h4>Memberships &amp; plans</h4><p>Offer recurring maintenance plans that bill automatically and keep your calendar full.</p></div>
+    </div>
+    <p class="soon-foot reveal">Have a feature you want? <a href="tel:8032912792">Tell us</a> — detailers shape the roadmap.</p>
+  </div></section>
 </main>
 
 <!-- ============ PRICING ============ -->
 <main data-route="pricing">
   <div class="wrap"><div class="pagehead reveal"><div class="eyebrow">Pricing</div><h1>Start free. Pay only when it <span>pays off</span>.</h1><p>No card to start. Upgrade to Pro inside the app whenever you're ready.</p></div></div>
-  <section class="blk" style="padding-top:28px"><div class="wrap"><div class="plans reveal" data-plans-full></div></div></section>
+  <section class="blk" style="padding-top:28px"><div class="wrap"><div class="reveal" data-plans-full></div></div></section>
   <section class="blk alt"><div class="wrap">
     <div class="head reveal"><div class="eyebrow">Earnings calculator</div><h2>See what your calendar is worth.</h2><p>Drag the sliders — Detail Connect helps fill more of these slots.</p></div>
     <div class="calc reveal">
@@ -740,22 +1082,41 @@
         <div class="ctrl"><label>Jobs per week <b><span id="cJobs">12</span></b></label><input id="rJobs" type="range" min="1" max="40" value="12" aria-label="Jobs per week"></div>
         <div class="ctrl"><label>Average ticket <b>$<span id="cTicket">160</span></b></label><input id="rTicket" type="range" min="50" max="500" step="5" value="160" aria-label="Average ticket"></div>
         <p class="sub">Detail Connect handles booking, reminders, and invoicing so more slots actually get filled.</p>
+        <div class="ts-merged">
+          <div class="tm-lbl">Where those <b>hours</b> come from — drag the slider above</div>
+          <div class="tsgrid">
+            <div class="tsblock"><span class="tsi" style="background:#e8eeff;color:var(--blue)">📞</span><div><b id="pcCall">~0h</b><small>Calling clients</small></div></div>
+            <div class="tsblock"><span class="tsi" style="background:#dcfaf1;color:var(--teal)">📱</span><div><b id="pcText">~0h</b><small>Texting clients</small></div></div>
+            <div class="tsblock"><span class="tsi" style="background:#fff2df;color:var(--amber)">🧾</span><div><b id="pcInv">~0h</b><small>Writing invoices</small></div></div>
+            <div class="tsblock"><span class="tsi" style="background:#f2ecff;color:#7a3ff2">📊</span><div><b id="pcProfit">~0h</b><small>Calculating profit</small></div></div>
+          </div>
+        </div>
       </div>
       <div class="result">
         <div class="rlabel">Estimated yearly revenue</div>
         <div class="big" id="cYear">$0</div>
         <div class="rrow"><div class="rcard2"><div class="n" id="cWeek">$0</div><small>per week</small></div><div class="rcard2"><div class="n" id="cMonth">$0</div><small>per month</small></div></div>
-        <div class="tsaved"><span class="tsi">⏱️</span><div><b id="cSaved">~0h</b><small>estimated time saved on admin work / month</small></div></div>
+        <div class="tsaved"><span class="tsi">⏱️</span><div><b id="cSaved">~0h</b><small>Time handed back to you every month</small></div></div>
+        <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn result-cta">Start your free trial →</a>
       </div>
     </div>
   </div></section>
   <section class="blk"><div class="wrap"><div class="head reveal"><div class="eyebrow">Pricing questions</div><h2>Fair and simple.</h2></div><div class="faq reveal" data-faq-pricing></div></div></section>
 </main>
 
+<!-- ============ COMING SOON / ROADMAP ============ -->
+<main data-route="roadmap">
+  <div class="wrap"><div class="pagehead reveal"><div class="eyebrow">The roadmap</div><h1>Coming soon to <span>Detail Connect</span>.</h1><p>We ship fast, and detailers shape what's next. Here's everything we're building to help you run and grow your business.</p></div></div>
+  <section class="blk" style="padding-top:22px"><div class="wrap">
+    <div class="road reveal" data-roadmap></div>
+    <p class="road-note reveal">This roadmap is a preview — timing and details may change as we build. Want something that isn't here? <a href="tel:8032912792">Let us know</a> — the most-requested features move up the list.</p>
+  </div></section>
+</main>
+
 <!-- ============ BLOGS ============ -->
 <main data-route="blogs">
   <div class="wrap"><div class="pagehead reveal"><div class="eyebrow">Blog</div><h1>Grow your <span>detailing</span> business.</h1><p>Playbooks, pricing tips, and app updates from the Detail Connect team.</p></div></div>
-  <section class="blk" style="padding-top:28px"><div class="wrap"><div class="blogs" data-blogfull></div></div></section>
+  <section class="blk" style="padding-top:28px"><div class="wrap"><div class="reveal" data-blogfeature></div><div class="blogs" data-blogfull></div></div></section>
 </main>
 
 <!-- ============ ABOUT ============ -->
@@ -771,7 +1132,7 @@
     <div class="shot floaty"><span class="glow"></span><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp" alt="Detail Connect app"></div>
   </div></section>
   <section class="blk alt"><div class="wrap">
-    <div class="statgrid reveal" style="grid-template-columns:repeat(4,1fr)">
+    <div class="statgrid statgrid-4 reveal">
       <div class="st"><div class="n" id="aStat2">800+</div><small>Five-star reviews</small></div>
       <div class="st"><div class="n">4.9★</div><small>App Store rating</small></div>
       <div class="st"><div class="n">50</div><small>US states served</small></div>
@@ -786,16 +1147,119 @@
       <div class="val"><div class="vi">🛡️</div><h4>Honest pricing</h4><p>Free to start. Upgrade only when the app is making you money.</p></div>
     </div>
   </div></section>
+
+  <!-- STORY / ROADMAP TIMELINE -->
+  <section class="blk alt"><div class="wrap">
+    <div class="head reveal"><div class="eyebrow">Our story</div><h2>How we got here.</h2><p>From a driveway bucket to detailers in all 50 states.</p></div>
+    <ol class="timeline reveal">
+      <li class="tl-item"><span class="tl-dot"></span><div class="tl-card"><div class="tl-year">2019</div><h4>It started in a driveway</h4><p>A veteran-owned detailing business run from a notebook, a group chat, and a stack of missed texts — we knew there had to be a better way.</p></div></li>
+      <li class="tl-item"><span class="tl-dot"></span><div class="tl-card"><div class="tl-year">Beta phase</div><h4>The CRM in beta — 3,000+ detailers</h4><p>We put an early version of the CRM in the hands of real detailers and gathered feedback from over <b>3,000 detailers</b> to shape every feature.</p></div></li>
+      <li class="tl-item is-key"><span class="tl-dot"></span><div class="tl-card"><div class="tl-year">January 2026</div><h4>The Detail Connect CRM launches</h4><p>The full CRM goes live to every mobile detailer — booking, calendar, invoices, revenue tracking, and more, all in one app.</p></div></li>
+      <li class="tl-item"><span class="tl-dot"></span><div class="tl-card"><div class="tl-year">2026</div><h4>1,000+ five-star reviews</h4><p>Detailers made Detail Connect their daily driver — and left over a thousand five-star reviews along the way.</p></div></li>
+      <li class="tl-item"><span class="tl-dot"></span><div class="tl-card"><div class="tl-year">Today</div><h4>17,400+ detailers, 50 states</h4><p>Thousands of jobs a month — and it's still shaped by the detailers who use it every day.</p></div></li>
+    </ol>
+  </div></section>
+
+  <!-- MEET THE FOUNDERS -->
+  <section class="blk"><div class="wrap">
+    <div class="head reveal"><div class="eyebrow">The team</div><h2>Meet the founders.</h2><p>Two people who've actually run the business you're running.</p></div>
+    <div class="founders-lead reveal">
+      <div class="fl-photo"><span>📷 Photo of Jon &amp; [You]<br><small>replace with your photo</small></span></div>
+      <div class="fl-copy"><p>Jon and <b>[Your name]</b> built Detail Connect after years in the detailing world — tired of juggling texts, spreadsheets, and a notebook to run one business. They set out to build the all-in-one tool they wished they'd had, and shaped it alongside thousands of real detailers.</p><p style="margin-top:14px">Veteran-owned and detailer-built — that's not a tagline, it's who they are.</p></div>
+    </div>
+    <div class="founders-grid reveal">
+      <div class="founder"><div class="f-photo">J</div><h4>Jon [Last name]</h4><div class="f-role">Co-Founder</div><p>[Short bio about Jon — his background in detailing and what he leads at Detail Connect. Replace with the real bio.]</p></div>
+      <div class="founder"><div class="f-photo">Y</div><h4>[Your name]</h4><div class="f-role">Co-Founder</div><p>[Short bio about you — your story and your role at Detail Connect. Replace with the real bio.]</p></div>
+    </div>
+  </div></section>
 </main>
+
+<!-- ============ FAQ (own page) ============ -->
+<main data-route="faq">
+  <div class="wrap"><div class="pagehead reveal"><div class="eyebrow">FAQs</div><h1>Questions? <span>We've got answers</span>.</h1><p>Everything about Detail Connect and the CRM — how it works, what's included, and how to get started.</p></div></div>
+  <section class="blk" style="padding-top:22px"><div class="wrap">
+    <div class="faq reveal" data-faq-all></div>
+    <div class="faq-more reveal">
+      <h3>Still have questions?</h3>
+      <p>Our team is here nearly 24/7 and responds within 48 hours.</p>
+      <div class="faq-more-cta"><a class="btn btn-solid" href="tel:8032912792">Call 803-291-2792</a><a class="btn btn-line" href="mailto:Support@detailconnect.app">Email us</a></div>
+    </div>
+  </div></section>
+</main>
+
+<!-- FINAL DOWNLOAD CTA (bottom of every page) -->
+<section class="blk final-cta"><div class="wrap"><div class="final reveal">
+  <div class="eyebrow" style="color:#bfe0ff">Free to start</div>
+  <h2 style="margin-top:10px">Your next booking is one download away.</h2>
+  <p>Join the fastest-growing app for mobile detailers. Veteran-owned and detailer-built.</p>
+  <div class="social">
+    <div class="sp"><b>17,400+</b> downloads</div>
+    <div class="sp"><span class="gold">★★★★★</span> Over 1,000 5-star reviews</div>
+  </div>
+  <div class="stores">
+    <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb25cd0f207d39678716d4_app-store.webp" alt="Download on the App Store"></a>
+    <a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb24fde2ab979a9fb05c3e_google-play.webp" alt="Get it on Google Play"></a>
+  </div>
+</div></div></section>
+
+<!-- SOCIAL MEDIA (bottom, all pages) -->
+<section class="socials">
+  <div class="wrap">
+    <div class="soc-head reveal"><div class="eyebrow">Follow along</div><h2>Join the Detail Connect community.</h2><p>Tutorials, tips, and detailer wins — follow us everywhere.</p></div>
+    <div class="soc-grid reveal">
+      <a class="soc soc-ig" href="https://www.instagram.com/detailconnect/" target="_blank" rel="noopener"><span class="si"><svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 1.8.25 2.2.42.6.22 1 .48 1.4.9.4.4.7.8.9 1.4.17.4.36 1 .42 2.2.06 1.3.07 1.7.07 4.9s0 3.6-.07 4.9c-.06 1.2-.25 1.8-.42 2.2-.22.6-.48 1-.9 1.4-.4.4-.8.7-1.4.9-.4.17-1 .36-2.2.42-1.3.06-1.7.07-4.9.07s-3.6 0-4.9-.07c-1.2-.06-1.8-.25-2.2-.42-.6-.22-1-.48-1.4-.9-.4-.4-.7-.8-.9-1.4-.17-.4-.36-1-.42-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.07-4.9c.06-1.2.25-1.8.42-2.2.22-.6.48-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.17 1-.36 2.2-.42C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.07-1.1.05-1.7.24-2.1.4-.5.2-.9.44-1.3.84-.4.4-.64.8-.84 1.3-.16.4-.35 1-.4 2.1C2.6 8.5 2.6 8.9 2.6 12s0 3.5.07 4.7c.05 1.1.24 1.7.4 2.1.2.5.44.9.84 1.3.4.4.8.64 1.3.84.4.16 1 .35 2.1.4 1.2.07 1.6.07 4.7.07s3.5 0 4.7-.07c1.1-.05 1.7-.24 2.1-.4.5-.2.9-.44 1.3-.84.4-.4.64-.8.84-1.3.16-.4.35-1 .4-2.1.07-1.2.07-1.6.07-4.7s0-3.5-.07-4.7c-.05-1.1-.24-1.7-.4-2.1-.2-.5-.44-.9-.84-1.3-.4-.4-.8-.64-1.3-.84-.4-.16-1-.35-2.1-.4-1.2-.07-1.6-.07-4.7-.07zm0 3.06A4.94 4.94 0 1 1 12 17a4.94 4.94 0 0 1 0-9.94zm0 8.15A3.2 3.2 0 1 0 12 9a3.2 3.2 0 0 0 0 6.36zM17.4 6a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3z"/></svg></span>Instagram</a>
+      <a class="soc soc-yt" href="https://www.youtube.com/@detailconnect" target="_blank" rel="noopener"><span class="si"><svg viewBox="0 0 24 24"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.9 12 4.9 12 4.9s-7 0-8.9.5A3 3 0 0 0 1 7.5C.5 9.4.5 12 .5 12s0 2.6.5 4.5a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-4.5.5-4.5s0-2.6-.5-4.5zM9.7 15.5v-7l6 3.5-6 3.5z"/></svg></span>YouTube</a>
+      <a class="soc soc-tt" href="https://www.tiktok.com/@detailconnect" target="_blank" rel="noopener"><span class="si"><svg viewBox="0 0 24 24"><path d="M16.5 3c.3 2.2 1.5 3.6 3.6 3.8v2.5c-1.2.1-2.3-.3-3.6-1v6.1c0 4.4-3.6 6.8-6.9 5.6-3.5-1.3-4-6-1.1-8.1 1.1-.8 2.4-1 3.7-.8v2.6c-.4-.1-.9-.2-1.4-.1-1.2.2-1.9 1.3-1.6 2.5.3 1.3 1.7 1.9 2.9 1.3.9-.4 1.3-1.2 1.3-2.2V3h3.1z"/></svg></span>TikTok</a>
+      <a class="soc soc-fb" href="https://www.facebook.com/detailconnect" target="_blank" rel="noopener"><span class="si"><svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg></span>Facebook</a>
+      <a class="soc soc-x" href="https://x.com/detailconnect" target="_blank" rel="noopener"><span class="si"><svg viewBox="0 0 24 24"><path d="M17.5 3h3l-6.6 7.5L21.8 21h-6l-4.7-6.1L5.7 21h-3l7-8L2.5 3h6.1l4.2 5.6L17.5 3zm-1.1 16.2h1.7L7.7 4.7H5.9l10.5 14.5z"/></svg></span>X</a>
+      <a class="soc soc-li" href="https://www.linkedin.com/company/detailconnect" target="_blank" rel="noopener"><span class="si"><svg viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3 9h4v12H3zM9 9h3.8v1.6h.05c.53-1 1.83-2.05 3.76-2.05 4.02 0 4.76 2.65 4.76 6.1V21H20.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H13V9z"/></svg></span>LinkedIn</a>
+    </div>
+  </div>
+</section>
 
 <footer><div class="wrap">
   <div class="foot-top">
-    <div><a class="brand" href="#home"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/671a12872a8036f35a6425ac_image%203.webp" alt="Detail Connect" style="height:24px"></a><p style="max-width:30ch;margin-top:12px;color:var(--sub)">The all-in-one app for mobile detailers. Veteran-owned &amp; detailer-built.</p></div>
-    <div><h4>Product</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a></div>
-    <div><h4>Company</h4><a href="#about">About us</a><a href="#blogs">Blogs</a><a href="#cases">Case Studies</a></div>
-    <div><h4>Get the app</h4><a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener">App Store</a><a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener">Google Play</a><a href="tel:8032912792">803-291-2792</a></div>
+    <div class="foot-brand">
+      <a class="brand foot-logo" href="#home"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/671a12872a8036f35a6425ac_image%203.webp" alt="Detail Connect"><span class="foot-llc">LLC</span></a>
+      <p class="foot-tag">Follow us on social media to get the latest updates and tips!</p>
+      <div class="foot-socials">
+        <a href="https://www.instagram.com/detailconnect/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 1.8.25 2.2.42.6.22 1 .48 1.4.9.4.4.7.8.9 1.4.17.4.36 1 .42 2.2.06 1.3.07 1.7.07 4.9s0 3.6-.07 4.9c-.06 1.2-.25 1.8-.42 2.2-.22.6-.48 1-.9 1.4-.4.4-.8.7-1.4.9-.4.17-1 .36-2.2.42-1.3.06-1.7.07-4.9.07s-3.6 0-4.9-.07c-1.2-.06-1.8-.25-2.2-.42-.6-.22-1-.48-1.4-.9-.4-.4-.7-.8-.9-1.4-.17-.4-.36-1-.42-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.07-4.9c.06-1.2.25-1.8.42-2.2.22-.6.48-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.17 1-.36 2.2-.42C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.07-1.1.05-1.7.24-2.1.4-.5.2-.9.44-1.3.84-.4.4-.64.8-.84 1.3-.16.4-.35 1-.4 2.1C2.6 8.5 2.6 8.9 2.6 12s0 3.5.07 4.7c.05 1.1.24 1.7.4 2.1.2.5.44.9.84 1.3.4.4.8.64 1.3.84.4.16 1 .35 2.1.4 1.2.07 1.6.07 4.7.07s3.5 0 4.7-.07c1.1-.05 1.7-.24 2.1-.4.5-.2.9-.44 1.3-.84.4-.4.64-.8.84-1.3.16-.4.35-1 .4-2.1.07-1.2.07-1.6.07-4.7s0-3.5-.07-4.7c-.05-1.1-.24-1.7-.4-2.1-.2-.5-.44-.9-.84-1.3-.4-.4-.8-.64-1.3-.84-.4-.16-1-.35-2.1-.4-1.2-.07-1.6-.07-4.7-.07zm0 3.06A4.94 4.94 0 1 1 12 17a4.94 4.94 0 0 1 0-9.94zm0 8.15A3.2 3.2 0 1 0 12 9a3.2 3.2 0 0 0 0 6.36zM17.4 6a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3z"/></svg></a>
+        <a href="https://www.facebook.com/detailconnect" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg></a>
+        <a href="https://x.com/detailconnect" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.5 3h3l-6.6 7.5L21.8 21h-6l-4.7-6.1L5.7 21h-3l7-8L2.5 3h6.1l4.2 5.6L17.5 3zm-1.1 16.2h1.7L7.7 4.7H5.9l10.5 14.5z"/></svg></a>
+        <a href="https://www.linkedin.com/company/detailconnect" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3 9h4v12H3zM9 9h3.8v1.6h.05c.53-1 1.83-2.05 3.76-2.05 4.02 0 4.76 2.65 4.76 6.1V21H20.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H13V9z"/></svg></a>
+        <a href="https://www.tiktok.com/@detailconnect" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24"><path d="M16.5 3c.3 2.2 1.5 3.6 3.6 3.8v2.5c-1.2.1-2.3-.3-3.6-1v6.1c0 4.4-3.6 6.8-6.9 5.6-3.5-1.3-4-6-1.1-8.1 1.1-.8 2.4-1 3.7-.8v2.6c-.4-.1-.9-.2-1.4-.1-1.2.2-1.9 1.3-1.6 2.5.3 1.3 1.7 1.9 2.9 1.3.9-.4 1.3-1.2 1.3-2.2V3h3.1z"/></svg></a>
+        <a href="https://www.youtube.com/@detailconnect" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.9 12 4.9 12 4.9s-7 0-8.9.5A3 3 0 0 0 1 7.5C.5 9.4.5 12 .5 12s0 2.6.5 4.5a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-4.5.5-4.5s0-2.6-.5-4.5zM9.7 15.5v-7l6 3.5-6 3.5z"/></svg></a>
+      </div>
+    </div>
+    <div class="foot-col"><h4>Home</h4>
+      <a href="#home">Home</a>
+      <a href="tel:8032912792">Contact us</a>
+      <a href="#features">Features</a>
+      <a href="https://www.youtube.com/@detailconnect" target="_blank" rel="noopener">Tutorials</a>
+      <a href="#blogs">Blogs</a>
+    </div>
+    <div class="foot-col"><h4>Contact Us</h4>
+      <a href="tel:8032912792">(+1) 803-291-2792</a>
+      <a href="mailto:contact@detailconnect.app">contact@detailconnect.app</a>
+      <a href="mailto:support@detailconnect.app">support@detailconnect.app</a>
+      <a href="mailto:outreach@detailconnect.app">outreach@detailconnect.app</a>
+      <a href="mailto:marketing@detailconnect.app">marketing@detailconnect.app</a>
+      <a href="mailto:collaboration@detailconnect.app">collaboration@detailconnect.app</a>
+    </div>
+    <div class="foot-col"><h4>Legal Disclaimer</h4>
+      <a href="#faq">Privacy Policy</a>
+      <a href="#faq">Terms of Service</a>
+      <div class="foot-dl">Download the App:</div>
+      <div class="foot-stores">
+        <a href="https://play.google.com/store/apps/details?id=com.detailerdelivery.app" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb24fde2ab979a9fb05c3e_google-play.webp" alt="Get it on Google Play"></a>
+        <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener"><img src="https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/67cb25cd0f207d39678716d4_app-store.webp" alt="Download on the App Store"></a>
+      </div>
+    </div>
   </div>
-  <div class="foot-bottom"><div>© 2026 Detail Connect · Veteran-owned</div><div style="display:flex;gap:20px"><a href="#pricing">Terms</a><a href="#pricing">Privacy</a></div></div>
+  <div class="foot-bottom">
+    <div>Copyright © 2026 Detail Connect, All Rights Reserved.</div>
+    <div class="foot-vet"><span class="foot-flag">🇺🇸</span> Veteran Owned</div>
+  </div>
 </div></footer>
 
 <script>
@@ -815,15 +1279,61 @@
   $$('#navlinks a').forEach(a=>a.addEventListener('click',()=>{menu.classList.remove('open');hamb.setAttribute('aria-expanded','false');}));
 
   /* DATA */
-  const PLANS=`
-    <div class="plan"><h3>Starter</h3><div class="price">Free<small> / forever</small></div><p class="muted">Everything to take your first bookings.</p>
-      <ul><li><span class="chk">✓</span>Custom booking link</li><li><span class="chk">✓</span>Calendar &amp; reminders</li><li><span class="chk">✓</span>Photo portfolio</li><li><span class="chk">✓</span>Basic invoices</li></ul>
-      <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-line" style="width:100%;justify-content:center">Get started free</a></div>
-    <div class="plan feat"><span class="badge">Most popular</span><h3>Pro</h3><div class="price">Unlock in app</div><p class="muted">For detailers ready to grow revenue.</p>
-      <ul><li><span class="chk">✓</span>Everything in Starter</li><li><span class="chk">✓</span>Add-ons, upsells &amp; tips</li><li><span class="chk">✓</span>Revenue analytics &amp; reports</li><li><span class="chk">✓</span>Automatic rebooking reminders</li></ul>
-      <a href="https://apps.apple.com/us/app/detail-connect/id6670199837" target="_blank" rel="noopener" class="btn btn-solid" style="width:100%;justify-content:center">Go Pro</a></div>`;
-  document.querySelector('[data-plans]').innerHTML=PLANS;
-  document.querySelector('[data-plans-full]').innerHTML=PLANS;
+  // Pro pricing — monthly $43; yearly billed once ($430/yr ≈ $35.83/mo, ~2 months free)
+  const PRO_MO=43, PRO_YR=430;
+  const APP='https://apps.apple.com/us/app/detail-connect/id6670199837';
+  function plansHTML(){
+    return `
+    <div class="pay-calc">
+      <label class="pc-q">How much do you charge per average detail? <b>$<span class="pd-val">150</span></b></label>
+      <input class="pd-range" type="range" min="100" max="500" step="5" value="150" aria-label="Average detail price">
+      <div class="pc-res">Just <b>one detail</b> pays for <b><span class="pd-months">3.5</span> <span class="pd-unit">months</span></b> of Detail Connect.</div>
+    </div>
+    <div class="price-toggle" role="tablist" aria-label="Billing period">
+      <button type="button" class="pt-btn on" data-cycle="monthly" role="tab">Monthly</button>
+      <button type="button" class="pt-btn" data-cycle="yearly" role="tab">Yearly <span class="pt-save">Save $${PRO_MO*12-PRO_YR}</span></button>
+    </div>
+    <div class="plans plans-single">
+      <div class="plan feat plan-single"><span class="badge">Most popular</span>
+        <div class="eyebrow">Detail Connect Pro</div>
+        <div class="single-trial"><span class="st-big">7-day</span><span class="st-sub">free trial</span></div>
+        <p class="muted">Experience the complete CRM free for 7 days — no card required. Cancel anytime.</p>
+        <ul>
+          <li><span class="chk">✓</span>Custom booking link &amp; smart calendar</li>
+          <li><span class="chk">✓</span>Add-ons, upsells &amp; tips at checkout</li>
+          <li><span class="chk">✓</span>Revenue analytics &amp; reports</li>
+          <li><span class="chk">✓</span>Automatic rebooking &amp; reminders</li>
+          <li><span class="chk">✓</span>Automated review requests</li>
+          <li><span class="chk">✓</span>Unlimited invoices &amp; estimates</li>
+          <li><span class="chk">✓</span>Custom branding on your booking page</li>
+          <li><span class="chk">✓</span>Priority support</li>
+        </ul>
+        <div class="single-price">
+          <div class="sp-line">then just <span class="pro-amt">$${PRO_MO}</span><span class="pro-per"> / month</span></div>
+          <div class="pro-note">Billed monthly · cancel anytime</div>
+          <a href="${APP}" target="_blank" rel="noopener" class="btn single-cta">Start 7-day free trial →</a>
+        </div>
+      </div>
+    </div>`;
+  }
+  function wirePlans(host){
+    host.innerHTML=plansHTML();
+    const amt=host.querySelector('.pro-amt'), per=host.querySelector('.pro-per'), note=host.querySelector('.pro-note'), btns=[...host.querySelectorAll('.pt-btn')];
+    const range=host.querySelector('.pd-range'), pdVal=host.querySelector('.pd-val'), pdMonths=host.querySelector('.pd-months'), pdUnit=host.querySelector('.pd-unit');
+    let cycle='monthly';
+    const effMonthly=()=> cycle==='yearly' ? PRO_YR/12 : PRO_MO;
+    function updMonths(){ if(!range) return; const price=+range.value; pdVal.textContent=price; const raw=price/effMonthly(); const v=raw>=10?Math.round(raw):Math.round(raw*10)/10; pdMonths.textContent=v; pdUnit.textContent=(v===1?'month':'months'); }
+    function set(c){
+      cycle=c; btns.forEach(b=>b.classList.toggle('on',b.dataset.cycle===c));
+      if(c==='yearly'){ amt.textContent='$'+(PRO_YR/12).toFixed(0); per.textContent=' / month'; note.textContent='$'+PRO_YR+' billed yearly · save $'+(PRO_MO*12-PRO_YR); }
+      else { amt.textContent='$'+PRO_MO; per.textContent=' / month'; note.textContent='Billed monthly · cancel anytime'; }
+      updMonths();
+    }
+    btns.forEach(b=>b.addEventListener('click',()=>set(b.dataset.cycle)));
+    if(range) range.addEventListener('input',updMonths);
+    updMonths();
+  }
+  document.querySelectorAll('[data-plans],[data-plans-full]').forEach(wirePlans);
 
   const BLOGS=[
     ['c1','Playbook','How top detailers book out their whole week','The scheduling habits that keep a calendar full — without the endless texting.'],
@@ -836,36 +1346,202 @@
   function blogCards(list){return list.map(b=>`<article class="post reveal"><div class="cover ${b[0]}"><span>${b[1]}</span></div><div class="b"><h3>${b[2]}</h3><p>${b[3]}</p><a class="more" href="#blogs">Read more →</a></div></article>`).join('');}
   document.querySelector('[data-bloghome]').innerHTML=blogCards(BLOGS.slice(0,3));
   document.querySelector('[data-blogfull]').innerHTML=blogCards(BLOGS);
+  /* featured "Watch our YouTube tutorials" card at the top of the blog */
+  (function(){
+    const YT='https://www.youtube.com/@detailconnect'; // TODO: replace with the real channel URL
+    const YIC='<svg viewBox="0 0 24 24"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.9 12 4.9 12 4.9s-7 0-8.9.5A3 3 0 0 0 1 7.5C.5 9.4.5 12 .5 12s0 2.6.5 4.5a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-4.5.5-4.5s0-2.6-.5-4.5zM9.7 15.5v-7l6 3.5-6 3.5z"/></svg>';
+    const PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+    const feat='<a class="blog-feature" href="'+YT+'" target="_blank" rel="noopener">'+
+      '<div class="bf-media"><span class="bf-badge">'+YIC+' YouTube</span><span class="bf-play">'+PLAY+'</span></div>'+
+      '<div class="bf-body"><div class="eyebrow" style="color:#c4302b">Video tutorials</div><h3>Watch our YouTube tutorials</h3>'+
+      '<p>Step-by-step videos on booking, pricing, invoicing, and growing your mobile detailing business — free on our channel.</p>'+
+      '<span class="bf-cta">'+PLAY+' Watch on YouTube</span></div></a>';
+    document.querySelectorAll('[data-blogfeature]').forEach(el=>el.innerHTML=feat);
+  })();
 
   const FAQ=[
-    ['Is Detail Connect really free to start?','Yes. Build your booking page and take bookings on the free Starter plan. Upgrade to Pro in the app when you want add-ons, upsells, and revenue analytics.'],
-    ['Do my clients need to download anything?','No. Clients just tap your booking link in any browser, pick a time, and book. You run everything from the app; they don\'t need an account.'],
-    ['How do payments work?','Send professional invoices the moment you finish a job, and track tips and earnings in the app. In-app payment processing is expanding by area.'],
-    ['What kind of support is there?','Real people, 24/7, with a guaranteed response within 48 hours. Detail Connect is veteran-owned and built by detailers who use it themselves.'],
+    ['What is Detail Connect?','Detail Connect is a mobile app built for detailers to manage their business, streamline bookings, and grow — all in one place.'],
+    ['Who is Detail Connect\'s CRM for?','Detail Connect\'s CRM is for mobile detailers who want better scheduling, organization, and visibility into their business — whether you\'re solo or growing a team.'],
+    ['How can I get on the app as a mobile detailer?','Just download the app, sign up as a detailer, complete the onboarding, and instantly start setting up your custom services, pricing, and availability.'],
+    ['How will I receive bookings?','Booking requests come to you through the app. Clients choose from the services you offer and pick a time and date based on your availability. You get a notification with the details and can accept or reschedule the booking.'],
+    ['How will I receive payments?','Payments currently happen outside the app through your preferred methods. In-app payments and direct deposit features are in development.'],
+    ['What does the CRM include?','A color-coded calendar, client database, automatic revenue tracking, in-app calling and texting, route tracking, business analytics, automated reminders, and custom booking links.'],
+    ['Why should I move my existing clients to Detail Connect?','Moving your clients over helps with organization, collecting reviews, and building your reputation. Clients access your services through your custom booking link — no app download required.'],
+    ['Can I set my own prices?','Yes — you set your own pricing for every service you offer.'],
+    ['Can I reschedule or cancel a booking?','Yes. You can suggest a reschedule or cancel a booking by contacting the client directly.'],
+    ['How do I get started?','Download the app, create an account, set up your services, share your booking link, and start managing your detailing business in no time.'],
+    ['How do I attract more clients?','Combine quality photos, clear service listings, visible reviews, and consistent sharing of your booking link across social media and your business profiles.'],
+    ['What if there\'s an issue with the app?','Contact support through the app or email Support@detailconnect.app. Our team responds within 48 hours and is available nearly 24/7.'],
+    ['How does the app handle taxes and invoicing?','Detail Connect provides all the documentation for your earnings, but filing your taxes is your responsibility. You can view and download earnings reports right in the app dashboard.'],
   ];
   const PFAQ=[
-    ['Is there a setup or subscription fee to start?','None. Starter is free forever and there\'s no card required to begin taking bookings.'],
-    ['When should I upgrade to Pro?','When you want add-ons, upsells, tips, and revenue analytics — usually once bookings start rolling in.'],
-    ['Can I cancel anytime?','Yes. Manage or cancel Pro right from the app; you keep your free Starter tools either way.'],
+    ['Who is Detail Connect\'s CRM for?','Detail Connect\'s CRM is for mobile detailers who want better scheduling, organization, and visibility into their business — whether you\'re solo or growing a team.'],
+    ['What does the CRM include?','A color-coded calendar, client database, automatic revenue tracking, in-app calling and texting, route tracking, business analytics, and custom booking links.'],
+    ['Can clients book my services online?','Yes. You get a custom booking link and booking website so clients can book your detailing services online — new bookings appear automatically on your calendar.'],
+    ['How does scheduling work?','Jobs are displayed on a drag-and-drop, color-coded calendar, making it easy to manage your schedule, reschedule jobs, and spot open days.'],
+    ['Does Detail Connect track revenue automatically?','Yes. Revenue updates automatically as jobs are completed, giving you real-time insight into your detailing business.'],
+    ['Can I contact clients from the app?','Yes. You can call or text clients directly from the client database, keeping all your communication in one place.'],
+    ['Is Detail Connect free?','Experience the complete Detail Connect CRM free for 7 days. Automate your scheduling, client communication, invoicing, and more.'],
+    ['Can I access the CRM on my phone?','Yes. Detail Connect is mobile-first and built for detailers who manage their business on the go.'],
+    ['How do I get started?','Download the app, create an account, set up your services, share your booking link, and start managing your detailing business in no time.'],
   ];
   function renderFaq(host,data){if(!host)return;host.innerHTML=data.map(([q,a])=>`<details class="qa"><summary>${q}<span class="ic">+</span></summary><div class="ans"><p>${a}</p></div></details>`).join('');}
   renderFaq(document.querySelector('[data-faq]'),FAQ);
   renderFaq(document.querySelector('[data-faq-pricing]'),PFAQ);
-
-  /* AS-FEATURED-IN SCROLLING PRESS TICKER */
+  /* dedicated FAQ page: general FAQ + CRM FAQ combined (deduped by question) */
   (function(){
-    const host=document.querySelector('[data-ticker]'); if(!host) return;
-    const PRESS=[
-      {t:'Forbes',s:'font-family:Georgia,\'Times New Roman\',serif;font-weight:800;letter-spacing:-.01em'},
-      {t:'Entrepreneur',s:'letter-spacing:.01em'},
-      {t:'TechCrunch',s:'font-weight:900'},
-      {t:'Inc.',s:'font-weight:900;letter-spacing:-.03em'},
-      {t:'Business Insider',s:'font-family:Georgia,serif;font-weight:700'},
-      {t:'AutoWeek',s:'font-style:italic;font-weight:900'},
-      {t:'Detailing Success',s:'letter-spacing:.02em'},
-      {t:'Car Care Business',s:''},
+    const host=document.querySelector('[data-faq-all]'); if(!host) return;
+    const seen=new Set(), all=[];
+    [...FAQ,...PFAQ].forEach(qa=>{ const k=qa[0].toLowerCase().trim(); if(seen.has(k)) return; seen.add(k); all.push(qa); });
+    renderFaq(host,all);
+  })();
+
+  /* COMING SOON / ROADMAP page */
+  (function(){
+    const host=document.querySelector('[data-roadmap]'); if(!host) return;
+    const LANES=[
+      {name:'In development',sub:'Shipping soon',color:'#00b892',items:[
+        {ic:'🧾',t:'Estimates & quotes',d:'Send professional estimates clients can approve — and turn into a booking — in one tap.'},
+        {ic:'💳',t:'In-app payments & tips',d:'Take card payments and tips right in the app, with money in your account fast.'},
+        {ic:'👥',t:'Team accounts',d:'Add detailers, assign jobs, and track each person\'s schedule and earnings from one place.'},
+      ]},
+      {name:'Next up',sub:'In design',color:'#f2a93b',items:[
+        {ic:'🗺️',t:'Route optimization',d:'Auto-order your day\'s stops for the shortest drive time and less gas between jobs.'},
+        {ic:'🔁',t:'Memberships & plans',d:'Offer recurring maintenance plans that bill automatically and keep your calendar full.'},
+        {ic:'📣',t:'Marketing & referrals',d:'Built-in campaigns and referral links that turn happy clients into your best salespeople.'},
+        {ic:'💬',t:'Two-way client chat',d:'A single inbox for every client conversation — no more switching between apps.'},
+      ]},
+      {name:'On the roadmap',sub:'Exploring',color:'#8b94ad',items:[
+        {ic:'🖼️',t:'Before / after galleries',d:'Auto-build a portfolio from your job photos to win over new clients.'},
+        {ic:'📦',t:'Inventory & products',d:'Track supplies and see your true product cost on every job.'},
+        {ic:'📈',t:'Advanced analytics',d:'Deeper dashboards, forecasting, and goal tracking for your business.'},
+        {ic:'🎁',t:'Gift cards',d:'Sell and redeem gift cards right from your booking page.'},
+        {ic:'📊',t:'Accounting sync',d:'Export earnings straight to QuickBooks and other tools at tax time.'},
+      ]},
     ];
-    host.innerHTML=[...PRESS,...PRESS].map(p=>`<span style="${p.s}">${p.t}</span>`).join('');
+    host.innerHTML=LANES.map(l=>`<div class="lane"><div class="lane-h"><span class="lane-dot" style="background:${l.color}"></span><b>${l.name}</b><small>${l.sub}</small></div>${l.items.map(it=>`<div class="rfeat"><div class="rf-top"><span class="ri">${it.ic}</span><span class="rbadge" style="color:${l.color};background:color-mix(in srgb,${l.color} 14%,transparent)">${l.name}</span></div><h4>${it.t}</h4><p>${it.d}</p></div>`).join('')}</div>`).join('');
+  })();
+
+  /* HERO REVIEW TICKER: scrolling five-star reviews */
+  (function(){
+    // [review, name, business, initials] — matches the main Reviews section style
+    const RV=[
+      ['This app basically runs my shop. Went from a notebook to booked out three weeks.','Jordan R.','Apex Mobile Detailing · Charlotte, NC','JR'],
+      ['I was skeptical at first, but Detail Connect completely changed how I run my mobile detailing business. Between the booking link, automatic reminders, and instant invoicing I easily save 15+ hours a week on admin. My clients love booking themselves, no-shows dropped to almost nothing, and I finally have real numbers on my revenue instead of guessing. Honestly the best money I spend every month.','Marcus T.','Elite Shine · Tampa, FL','MT'],
+      ['Clients book themselves and I just show up and detail. Revenue is up.','Dev R.','Reflect Detailing · Phoenix, AZ','DR'],
+      ['Made my one-person operation look like a franchise. Worth every second.','Priya S.','Lustre Auto Spa · Austin, TX','PS'],
+      ['Invoices go out the second I finish. Getting paid has never been this easy.','Sofia L.','Gleam Mobile · Denver, CO','SL'],
+      ['Veteran-owned and it shows — clean, no nonsense, and support actually answers.','Andre W.','Crown Detailing · Atlanta, GA','AW'],
+    ];
+    const APL='<svg viewBox="0 0 24 24"><path d="M16.4 12.9c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-2.9.9-3.7 2.2-1.6 2.8-.4 6.9 1.1 9.2.7 1.1 1.6 2.3 2.7 2.3 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1.1 2.6-2.2.8-1.2 1.2-2.4 1.2-2.5-.1 0-2.3-.9-2.3-3.5zM14.2 6.2c.6-.8 1-1.8.9-2.9-.9 0-2 .6-2.6 1.3-.6.7-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.1z"/></svg>';
+    const html=[...RV,...RV].map(r=>`<div class="rcard"><span class="rc-corner" title="From the App Store">${APL}</span><div class="rtop"><div class="dp">${r[3]}</div><div class="who"><b>${r[1]}</b><small>${r[2]}</small></div></div><div class="stars">★★★★★</div><blockquote>${r[0]}</blockquote><button class="rc-more" type="button">See full review</button></div>`).join('');
+    document.querySelectorAll('[data-rev-ticker]').forEach(el=>{
+      el.innerHTML=html;
+      const strip=el.closest('.hero-logos');
+      el.querySelectorAll('.rcard').forEach(card=>{
+        const q=card.querySelector('blockquote'), btn=card.querySelector('.rc-more');
+        if(q.textContent.trim().length<=95) btn.style.display='none'; // short reviews fit; no toggle needed
+        btn.addEventListener('click',()=>{
+          const ex=card.classList.toggle('expanded');
+          btn.textContent=ex?'Show less':'See full review';
+          if(strip) strip.classList.toggle('paused', !!el.querySelector('.rcard.expanded'));
+        });
+      });
+    });
+    /* hero ticker: real trust points, not press logos */
+    const HTRUST=[
+      '★ 4.9 average rating',
+      '17,400+ active detailers',
+      '1,000+ five-star reviews',
+      'Veteran-owned',
+      'All your tools in one app',
+      'Live customer support',
+      'No contracts, cancel anytime',
+    ];
+    const htHtml=[...HTRUST,...HTRUST].map(t=>`<span>${t}</span>`).join('');
+    document.querySelectorAll('[data-hticker]').forEach(el=>el.innerHTML=htHtml);
+  })();
+
+  /* FEATURED-TOOLS CAROUSEL (home) */
+  (function(){
+    const host=document.querySelector('[data-fcar]'); if(!host) return;
+    const C=[
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','Get discovered','Grow your client base.','Get discovered by clients in your area looking for mobile detailing, so you book more jobs and grow revenue.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','Reviews','Build your reputation.','Collect reviews from happy clients to build trust and earn repeat business.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp','Scheduling','Flexible scheduling.','Set your availability, block off dates you\'re not working, and manage your calendar right in the app.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp','Messaging','Direct communication.','Message clients to clarify details and deliver top-notch service every time.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','Pricing','Set your own prices.','You decide what to charge, so you keep full control over your detailing business.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','Prepared','Show up prepared.','Instant access to client details — location, vehicle info, and service needs — the moment they book.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','Analytics','Business analytics.','Track revenue, profile visits, and bookings for each of your services at a glance.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp','Bookings','Tools to succeed.','A simple interface to manage bookings, with notifications for new requests, confirmations, and updates.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','Control','Full control.','Showcase your services, adjust prices, stay competitive, and run promotions to attract more clients.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','Payments','In-app payment (soon).','Receive payments through the app and deposit your earnings directly to your bank.'],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','Upsells','Increase revenue.','Detail Connect highlights your add-ons and upcharges at booking so you never miss a chance to earn more.']
+    ];
+    const L='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+    const R='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+    host.innerHTML=`<div class="fcar-viewport">
+        <button class="fcar-arrow fcar-prev" id="fcarPrev" aria-label="Previous features">${L}</button>
+        <div class="fcar-track" id="fcarTrack">${C.map(c=>`<div class="fcell"><div class="shot"><span class="glow"></span><img src="${c[0]}" alt="${c[1]}"></div><div class="tag">${c[1]}</div><h3>${c[2]}</h3><p>${c[3]}</p></div>`).join('')}</div>
+        <button class="fcar-arrow fcar-next" id="fcarNext" aria-label="Next features">${R}</button>
+      </div>`;
+    const track=document.getElementById('fcarTrack');
+    const step=()=>track.querySelector('.fcell').getBoundingClientRect().width+22;
+    document.getElementById('fcarNext').addEventListener('click',()=>track.scrollBy({left:step(),behavior:'smooth'}));
+    document.getElementById('fcarPrev').addEventListener('click',()=>track.scrollBy({left:-step(),behavior:'smooth'}));
+  })();
+
+  /* "what problem are you solving?" filter — used on Features page and Home */
+  (function(){
+    const hosts=document.querySelectorAll('[data-prob]'); if(!hosts.length) return;
+    const IC={
+      book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>',
+      pay:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M6 3h8l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/></svg>',
+      job:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+      msg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>',
+      chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15V9M12 15V6M16 15v-3"/></svg>',
+      cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M8 14h3M8 17h6"/></svg>',
+      star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6.5 7 .8-5.2 4.7 1.5 6.9L12 17.8 5.2 20.9l1.5-6.9L1.5 9.3l7-.8L12 2Z"/></svg>',
+      map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg>'
+    };
+    const CFG={
+      feat:[
+        {tab:'Online booking',icon:IC.book,tag:'Online booking',h:'Let clients book themselves — 24/7.',p:'Share one link. Clients pick a service and time, and the job lands on your calendar automatically.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp'],li:['Custom booking page with your services & prices','Add-ons & upsells at checkout','Automatic confirmations & reminders']},
+        {tab:'Better job management',icon:IC.job,tag:'Run the day',h:'Your whole day, organized.',p:'Every job, client, and route in one place — with the details you need at each stop.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp'],li:['Jobs, routes & drive times','Client info & vehicle history','Revenue & analytics at a glance']},
+        {tab:'Invoices & payments',icon:IC.pay,tag:'Get paid',h:'Invoice in seconds. Track every dollar.',p:'Send a branded invoice the moment you finish, take tips, and watch earnings without a spreadsheet.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp'],li:['Instant, branded invoices','Tips & earnings tracking','Estimates — coming soon']},
+        {tab:'Client messaging',icon:IC.msg,tag:'Client messaging',h:'Confirmations & reminders, on autopilot.',p:'Detail Connect texts clients their confirmations and reminders automatically — fewer no-shows, zero manual texting.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp'],li:['Automatic confirmations & reminders','Cut no-shows dramatically','No more repetitive texts']},
+        {tab:'Insights & analytics',icon:IC.chart,tag:'Insights',h:'Know your numbers at a glance.',p:'See revenue, jobs booked, and your best-selling packages in one dashboard — no spreadsheet, no guessing.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp'],li:['Weekly & monthly earnings','Your best-selling services','Reports ready for tax time']},
+        {tab:'Reviews & reputation',icon:IC.star,tag:'Reputation',h:'More five-star reviews, automatically.',p:'Detail Connect nudges happy clients to leave a review right after the job — then shows them on your booking page.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp'],li:['Automatic review requests','Reviews on your booking page','Build trust with new clients']}
+      ],
+      home:[
+        {tab:'Automate my bookings',icon:IC.book,tag:'Online booking',h:'Let clients book themselves — 24/7.',p:'Share one link. Clients pick a service and time, and the job lands on your calendar automatically — no phone tag.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp'],li:['Custom booking page with your services & prices','Add-ons & upsells at checkout','Books straight onto your calendar']},
+        {tab:'Automate my messages',icon:IC.msg,tag:'Client messaging',h:'Confirmations & reminders, on autopilot.',p:'Detail Connect texts clients their confirmations and reminders automatically — fewer no-shows, zero manual texting.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp'],li:['Automatic confirmations & reminders','Cut no-shows dramatically','Stop typing the same texts all day']},
+        {tab:'Automated invoices',icon:IC.pay,tag:'Get paid',h:'Invoice in seconds. Track every dollar.',p:'Send a branded invoice the moment you finish, take tips, and watch earnings without a spreadsheet.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp'],li:['Instant, branded invoices','Tips & earnings tracking','Every job totaled automatically']},
+        {tab:'Track my earnings',icon:IC.chart,tag:'Insights',h:'Know your numbers at a glance.',p:'See revenue, jobs booked, and your best-selling packages in one dashboard — no spreadsheet, no guessing.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp'],li:['Weekly & monthly earnings','Your best-selling services','Reports ready for tax time']},
+        {tab:'Manage my schedule',icon:IC.cal,tag:'Run the day',h:'Your whole day, organized.',p:'Every job, client, and route in one place — with the details you need at each stop and drive times between them.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp'],li:['Jobs, routes & drive times','Client & vehicle history','A calendar that fills itself']},
+        {tab:'Get more reviews',icon:IC.star,tag:'Reputation',h:'More five-star reviews, automatically.',p:'Detail Connect nudges happy clients to leave a review right after the job — then shows them off on your booking page.',imgs:['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp'],li:['Automatic review requests','Reviews on your booking page','Build trust with new clients']}
+      ]
+    };
+    hosts.forEach(host=>{
+      const P=CFG[host.dataset.prob||'feat']||CFG.feat;
+      host.innerHTML=`<div class="prob-tabs">${P.map((p,i)=>`<button class="prob-tab${i===0?' on':''}" type="button" data-i="${i}"><span class="pi">${p.icon}</span>${p.tab}</button>`).join('')}</div><div class="prob-panel"></div>`;
+      const panel=host.querySelector('.prob-panel'), tabs=[...host.querySelectorAll('.prob-tab')];
+      function render(i){ const p=P[i]; panel.innerHTML=`<div class="prob-body"><div class="tag">${p.tag}</div><h3>${p.h}</h3><p>${p.p}</p><ul>${p.li.map(x=>`<li><span class="chk">✓</span><span>${x}</span></li>`).join('')}</ul></div><div class="prob-screens">${p.imgs.map(im=>`<div class="shot"><span class="glow"></span><img src="${im}" alt=""></div>`).join('')}</div>`; panel.style.animation='none'; void panel.offsetWidth; panel.style.animation=''; }
+      tabs.forEach((t,i)=>t.addEventListener('click',()=>{ tabs.forEach(x=>x.classList.remove('on')); t.classList.add('on'); render(i); }));
+      render(0);
+    });
+  })();
+
+  /* FEATURES PAGE: alternating image + text rows */
+  (function(){
+    const host=document.querySelector('[data-featrows]'); if(!host) return;
+    const F=[
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','Booking link','One link. Booked around the clock.','Share a single booking page in your bio, texts, and signage. Clients see live availability and reserve themselves — day or night.',['Custom page with your services & prices','Add-ons and upsells at checkout','Automatic confirmations & reminders']],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3d7ec1695ed03d16f76a_phone-image.webp','Services','Build your menu in seconds.','Interior, exterior, full detail, ceramic — set packages with price ranges and durations, then let clients book them directly.',['Flexible pricing & add-ons','A verified, professional profile','Portfolio of your best work']],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/69ca3efc769f64c24b823163_phone-img-3.webp','Invoices & earnings','Finish the job, get paid.','Send a clean, branded invoice the moment you wrap. Track tips and earnings without touching a spreadsheet.',['Instant, branded invoices','Tips & earnings tracking','Reports ready for tax time']],
+      ['https://cdn.prod.website-files.com/66f4db9eeb6560b7c1efcfa9/696b0dded9e89c9722aeee17_Pro.webp','Booking page','A page that looks pro.','Your services, prices, portfolio, and reviews on one shareable, mobile-first page clients trust at a glance.',['Verified badge & reviews','Your brand, front and center','Shareable anywhere']]
+    ];
+    host.innerHTML=F.map((f,i)=>`<div class="frow${i%2?' rev':''}"><div class="fr-shot reveal"><div class="shot"><span class="glow"></span><img src="${f[0]}" alt="${f[1]}"></div></div><div class="fr-body reveal"><div class="fr-tag">${f[1]}</div><h3>${f[2]}</h3><p>${f[3]}</p><ul>${f[4].map(x=>`<li><span class="chk">✓</span><span>${x}</span></li>`).join('')}</ul></div></div>`).join('');
   })();
 
   /* STICKY-SCROLL FEATURE SHOWCASE (V7 creative features page) */
@@ -898,16 +1574,24 @@
   /* REVIEWS carousel */
   const APPLE='<svg viewBox="0 0 24 24"><path d="M16.4 12.9c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-2.9.9-3.7 2.2-1.6 2.8-.4 6.9 1.1 9.2.7 1.1 1.6 2.3 2.7 2.3 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1.1 2.6-2.2.8-1.2 1.2-2.4 1.2-2.5-.1 0-2.3-.9-2.3-3.5zM14.2 6.2c.6-.8 1-1.8.9-2.9-.9 0-2 .6-2.6 1.3-.6.7-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.1z"/></svg>';
   const REVIEWS=[
-    ['Jordan R.','Apex Mobile Detailing · Charlotte, NC','JR','Went from a notebook and a group chat to booked out three weeks. This app basically runs my shop.'],
-    ['Dev R.','Reflect Detailing · Phoenix, AZ','DR','Clients book themselves and I just show up and detail. Revenue is up and I haven\'t touched a spreadsheet in months.'],
-    ['Priya S.','Lustre Auto Spa · Austin, TX','PS','It made my one-person operation look like a franchise. Worth every second it saves me.'],
-    ['Marcus T.','Elite Shine · Tampa, FL','MT','The booking link alone paid for itself in a week. Reminders cut my no-shows to almost zero.'],
-    ['Sofia L.','Gleam Mobile · Denver, CO','SL','Invoices go out the second I finish. Getting paid has never been this easy.'],
-    ['Andre W.','Crown Detailing · Atlanta, GA','AW','Veteran-owned and it shows — clean, no nonsense, and support actually answers. Five stars.'],
+    ['Mobile Wash Spa','Verified detailer','MW','We tried several platforms over the years, but Detail Connect stands out as the best all-in-one solution for mobile detailing businesses.'],
+    ['Express Auto Detailing','Verified detailer','EA','Detail Connect helped me advertise my business and book detailing jobs. It\'s easy, convenient, and fast — this app makes it 100 times simpler.'],
+    ['Sopes Auto Detailing','Verified detailer','SA','This app is very easy to set up and create a business profile. People can easily find you, pick a service, and book a detail — that easy.'],
+    ['Qui Detailing','Verified detailer','QD','Detail Connect has elevated my business and booking. It simplified booking for me and my clients. Easy to use and easy to set up — I definitely recommend it.'],
+    ['Pretty Boy Detailing','Verified detailer','PB','So simple. Absolutely dummy proof. A necessity for my business.'],
+    ['Bradens Mobile Detailing','Verified detailer','BM','Used to run my business off notes and Google Calendar 🤦‍♂️ This app is elite.'],
+    ['Kevins Auto Detailing','Verified detailer','KA','I\'ve used many apps such as Square. Nothing compares to this app. Everything is super easy and smooth. Highly recommend for every detailer out there.'],
+    ['Prime Shine Mobile Detail','Verified detailer','PS','I\'ve been using Detail Connect for a little while now and it\'s honestly a game changer. Scheduling is super easy and notifications keep me on track.'],
+    ['The Local\'s Detailing','Verified detailer','TL','I highly recommend Detail Connect. As a professional detailer, I love how it simplifies scheduling, payment, and communication all in one place.'],
+    ['Mobile Detailers United','Gwinnett County, GA','MD','This app is amazing from a detailer\'s POV. I get the notification for an appointment, swipe when I\'m on the way and swipe when I\'m finished, and payment is handled with no issues. A great tool to expand your business.'],
   ];
   (function(){const host=document.querySelector('[data-reviews]');if(!host)return;
-    host.innerHTML=`<div class="rev-track" id="revTrack">${REVIEWS.map(r=>`<div class="rcard"><div class="rtop"><div class="dp">${r[2]}</div><div class="who"><b>${r[0]}</b><small>${r[1]}</small></div></div><div class="stars">★★★★★</div><blockquote>${r[3]}</blockquote><span class="as-pill">${APPLE} Verified · App Store</span></div>`).join('')}</div>
-      <div class="rev-ctrl"><button class="arrow" id="revPrev" aria-label="Previous reviews"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><div class="dots" id="revDots"></div><button class="arrow" id="revNext" aria-label="Next reviews"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div>`;
+    host.innerHTML=`<div class="rev-viewport">
+        <button class="arrow rev-arrow rev-prev" id="revPrev" aria-label="Previous reviews"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="rev-track" id="revTrack">${REVIEWS.map(r=>`<div class="rcard"><div class="rtop"><div class="dp">${r[2]}</div><div class="who"><b>${r[0]}</b><small>${r[1]}</small></div></div><div class="stars">★★★★★</div><blockquote>${r[3]}</blockquote><span class="as-pill">${APPLE} App Store Verified</span></div>`).join('')}</div>
+        <button class="arrow rev-arrow rev-next" id="revNext" aria-label="Next reviews"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="rev-ctrl"><div class="dots" id="revDots"></div></div>`;
     const track=document.getElementById('revTrack'),cards=[...track.children],dw=document.getElementById('revDots');
     const step=()=>cards[0].getBoundingClientRect().width+18;
     cards.forEach((_,i)=>{const b=document.createElement('button');b.className='dot'+(i===0?' on':'');b.setAttribute('aria-label','Review '+(i+1));b.addEventListener('click',()=>track.scrollTo({left:step()*i,behavior:'smooth'}));dw.appendChild(b);});
@@ -918,6 +1602,87 @@
     document.getElementById('revPrev').addEventListener('click',()=>track.scrollBy({left:-step(),behavior:'smooth'}));
     let auto=setInterval(()=>{if(track.scrollLeft+track.clientWidth>=track.scrollWidth-4)track.scrollTo({left:0,behavior:'smooth'});else track.scrollBy({left:step(),behavior:'smooth'});},5000);
     host.addEventListener('pointerdown',()=>clearInterval(auto));
+  })();
+
+  /* MAP COVERAGE DOTS — dense field representing 17,400+ detailers */
+  (function(){
+    const svg=document.querySelector('#map svg'); if(!svg) return;
+    // rough state populations (millions) — density weights so the map mirrors reality
+    const POP={CA:39,TX:30,FL:22,NY:20,PA:13,IL:13,OH:12,GA:11,NC:11,MI:10,NJ:9.3,VA:8.7,WA:7.8,AZ:7.4,MA:7,TN:7,IN:6.8,MD:6.2,MO:6.2,WI:5.9,CO:5.9,MN:5.7,SC:5.3,AL:5,LA:4.6,KY:4.5,OR:4.2,OK:4,CT:3.6,UT:3.4,IA:3.2,NV:3.1,AR:3,MS:2.9,KS:2.9,NM:2.1,NE:2,ID:1.9,WV:1.8,HI:1.4,NH:1.4,ME:1.4,MT:1.1,RI:1.1,DE:1,SD:0.9,ND:0.8,AK:0.73,VT:0.65,WY:0.58,DC:0.7};
+    function build(){
+      if(svg.querySelector('.coverage-dots')) return;
+      const states=[...svg.querySelectorAll('.states path')];
+      if(!states.length || !states[0].isPointInFill) return;
+      const P=(typeof DOMPoint!=='undefined')?(x,y)=>new DOMPoint(x,y):(x,y)=>({x,y});
+      const TOTAL=5000, out=[];
+      let totalW=0;
+      const info=states.map(p=>{ const b=p.getBBox(); const w=POP[(p.id||'').toUpperCase()]||0.8; totalW+=w; return {p,b,w}; });
+      if(!totalW) return;
+      info.forEach(s=>{
+        const target=Math.max(3, Math.round(TOTAL * s.w/totalW));
+        let placed=0, tries=0, max=target*16;
+        while(placed<target && tries<max){ tries++;
+          const x=s.b.x+Math.random()*s.b.width, y=s.b.y+Math.random()*s.b.height;
+          let ins=false; try{ ins=s.p.isPointInFill(P(x,y)); }catch(e){ ins=false; }
+          if(!ins) continue;
+          out.push('<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(2+Math.random()*1.1).toFixed(2)+'"/>');
+          placed++;
+        }
+      });
+      const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('class','coverage-dots');
+      g.innerHTML=out.join('');
+      const pins=svg.querySelector('.pins');
+      svg.insertBefore(g, pins||null);
+    }
+    if(document.readyState==='loading') addEventListener('DOMContentLoaded',build); else build();
+  })();
+
+  /* REAL COVERAGE MAP (Leaflet + OSM/Carto) — live site only; artifact preview keeps the SVG fallback */
+  (function(){
+    if(typeof L==='undefined') return;                 // Leaflet blocked (artifact) → keep SVG dots
+    const el=document.getElementById('realmap'); if(!el) return;
+    const METROS=[
+      [40.71,-74.0,19],[34.05,-118.24,13],[41.88,-87.63,9.5],[32.78,-96.80,7.6],[29.76,-95.37,7.1],
+      [38.90,-77.04,6.3],[25.76,-80.19,6.1],[39.95,-75.17,6.2],[33.75,-84.39,6.1],[33.45,-112.07,4.9],
+      [42.36,-71.06,4.9],[37.77,-122.42,4.7],[33.95,-117.40,4.6],[42.33,-83.05,4.3],[47.61,-122.33,4.0],
+      [44.98,-93.27,3.7],[32.72,-117.16,3.3],[27.95,-82.46,3.2],[39.74,-104.99,2.9],[38.63,-90.20,2.8],
+      [39.29,-76.61,2.8],[35.23,-80.84,2.7],[28.54,-81.38,2.7],[29.42,-98.49,2.6],[45.52,-122.68,2.5],
+      [38.58,-121.49,2.4],[40.44,-79.99,2.3],[36.17,-115.14,2.3],[30.27,-97.74,2.3],[39.10,-84.51,2.2],
+      [39.10,-94.58,2.2],[39.96,-82.99,2.1],[39.77,-86.16,2.1],[41.50,-81.69,2.0],[36.16,-86.78,2.0],
+      [37.34,-121.89,2.0],[36.85,-75.98,1.8],[41.82,-71.41,1.7],[30.33,-81.66,1.6],[43.04,-87.91,1.6],
+      [35.78,-78.64,1.4],[35.15,-90.05,1.3],[37.54,-77.44,1.3],[29.95,-90.07,1.3],[38.25,-85.76,1.3],
+      [40.76,-111.89,1.2],[41.76,-72.67,1.2],[42.89,-78.88,1.1],[33.52,-86.80,1.1],[35.47,-97.52,1.4],
+      [32.22,-110.97,1.0],[36.74,-119.79,1.0],[41.26,-95.93,0.95],[31.76,-106.49,0.87],[35.08,-106.65,0.92],
+      [35.37,-119.02,0.9],[35.96,-83.92,0.87],[42.96,-85.67,1.0],[36.15,-95.99,1.0],[21.31,-157.86,1.0],
+      [61.22,-149.90,0.4],[43.62,-116.21,0.75],[47.66,-117.43,0.6],[41.59,-93.62,0.7],[34.75,-92.29,0.74],
+      [34.00,-81.03,0.83],[32.78,-79.93,0.8],[34.85,-82.39,0.9],[37.69,-97.34,0.64],[46.88,-96.79,0.25],
+      [45.79,-108.50,0.18],[41.14,-104.82,0.1],[43.66,-70.26,0.55],[44.48,-73.21,0.22],[43.55,-96.73,0.28]
+    ];
+    el.classList.add('on');
+    document.querySelector('#map .map-wrap').classList.add('has-realmap');
+    const map=L.map(el,{scrollWheelZoom:false,zoomControl:true,attributionControl:true,minZoom:3,maxZoom:9,worldCopyJump:true}).setView([39.3,-96.5],4);
+    map.zoomControl.setPosition('topright');
+    // Esri "World Light Gray Canvas" — clean light basemap, free, no API key
+    // (CartoDB's public light_all endpoint now returns key-required placeholder tiles)
+    L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,attribution:'Tiles &copy; Esri'}).addTo(map);
+    const canvas=L.canvas({padding:0.5});
+    const totalW=METROS.reduce((s,m)=>s+m[2],0), N=4500;
+    const g=()=> (Math.random()+Math.random()+Math.random()-1.5); // ~gaussian, mean 0
+    METROS.forEach(m=>{
+      const cnt=Math.max(2,Math.round(N*m[2]/totalW)), spread=0.22+Math.sqrt(m[2])*0.2;
+      for(let i=0;i<cnt;i++){
+        L.circleMarker([m[0]+g()*spread, m[1]+g()*spread*1.3],{renderer:canvas,radius:3,stroke:true,color:'#111',weight:0.6,opacity:.8,fillColor:'#f5453a',fillOpacity:.85}).addTo(map);
+      }
+    });
+    // Robust sizing: a canvas map drawn while its container has 0 width paints
+    // nothing. Recompute whenever the container gains/changes width (below the
+    // fold, late layout, tab restore) and when it first scrolls into view.
+    const fix=()=>{ if(el.getBoundingClientRect().width>0) map.invalidateSize(); };
+    setTimeout(fix,350); setTimeout(fix,1200);
+    addEventListener('resize',fix);
+    if('ResizeObserver' in window){ new ResizeObserver(fix).observe(el); }
+    if('IntersectionObserver' in window){ const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting) fix();});}); io.observe(el); }
   })();
 
   /* INSTAGRAM VIDEO CAROUSEL (real reels) */
@@ -955,8 +1720,23 @@
       if(ids.saved){const savedH=Math.round((+rj.value)*18/60*4.33);g(ids.saved).textContent='~'+savedH+'h';}}
     [rj,rt].forEach(r=>r.addEventListener('input',calc));calc();
   }
-  mountCalc({rj:'rJobs',rt:'rTicket',jobs:'cJobs',ticket:'cTicket',year:'cYear',week:'cWeek',month:'cMonth',saved:'cSaved'});
-  mountCalc({rj:'hrJobs',rt:'hrTicket',jobs:'hJobs',ticket:'hTicket',year:'hYear',week:'hWeek',month:'hMonth',saved:'hSaved'});
+  mountCalc({rj:'rJobs',rt:'rTicket',jobs:'cJobs',ticket:'cTicket',year:'cYear',week:'cWeek',month:'cMonth'});
+  mountCalc({rj:'hrJobs',rt:'hrTicket',jobs:'hJobs',ticket:'hTicket',year:'hYear',week:'hWeek',month:'hMonth'});
+
+  /* interactive time-saved breakdown (scales with jobs/week) — home + pricing */
+  function mountTimeSaved(sliderId, ids){
+    const rj=document.getElementById(sliderId); if(!rj) return;
+    const MIN={}; MIN[ids.call]=5; MIN[ids.text]=6; MIN[ids.inv]=5; MIN[ids.profit]=4; // minutes saved per job, per task
+    const g=id=>document.getElementById(id);
+    const tm=ids.tm?g(ids.tm):null; // optional dedicated slider next to the blocks
+    function bump(el){ const t=el&&el.closest&&el.closest('.tsblock'); if(!t) return; t.classList.add('tspop'); clearTimeout(t._tsT); t._tsT=setTimeout(()=>t.classList.remove('tspop'),320); }
+    function upd(){ const j=+rj.value; let tot=0; for(const id in MIN){ const h=Math.round(j*MIN[id]/60*4.33); tot+=h; const el=g(id); if(el && el.textContent!=='~'+h+'h'){ el.textContent='~'+h+'h'; bump(el); } } if(ids.total){ const tt=g(ids.total); if(tt && tt.textContent!=='~'+tot+'h'){ tt.textContent='~'+tot+'h'; bump(tt); } } if(ids.valId && g(ids.valId)) g(ids.valId).textContent=j; if(tm && +tm.value!==j) tm.value=j; }
+    rj.addEventListener('input',upd);
+    if(tm) tm.addEventListener('input',()=>{ rj.value=tm.value; rj.dispatchEvent(new Event('input',{bubbles:true})); });
+    upd();
+  }
+  mountTimeSaved('hrJobs',{call:'tsCall',text:'tsText',inv:'tsInv',profit:'tsProfit',total:'tsTotal',valId:'tmJobsVal',tm:'tmJobs'});
+  mountTimeSaved('rJobs',{call:'pcCall',text:'pcText',inv:'pcInv',profit:'pcProfit',total:'cSaved'});
 
   /* COUNT-UP */
   function countUp(el){if(!el||el._done)return;el._done=1;const s=performance.now();(function tick(t){const p=Math.min(1,(t-s)/1200);el.textContent=Math.round(800*ease(p))+'+';if(p<1)requestAnimationFrame(tick);})(performance.now());}
@@ -979,14 +1759,58 @@
   // Case Studies / FAQ / Reviews live on Home — send those nav links to home anchors
   $$('#navlinks a').forEach(a=>{const n=a.dataset.nav; if(['cases','faq','reviews'].includes(n)){a.setAttribute('href','#'+n);}});
   // keep the coverage map as the last section on Home
-  (function(){const home=document.querySelector('main[data-route="home"]');const map=document.getElementById('map');if(home&&map)home.appendChild(map);})();
+  /* HOMEPAGE SECTION ORDER (per redesign): Features > Time Saved > ... > FAQ > IG videos > Map > About > Blogs */
+  (function(){
+    const home=document.querySelector('main[data-route="home"]'); if(!home) return;
+    // split the Instagram reels out of the social-proof section into their own section
+    const ig=document.querySelector('#reviews .igblock');
+    if(ig){ const s=document.createElement('section'); s.className='blk'; s.id='ig-videos';
+      const w=document.createElement('div'); w.className='wrap'; w.appendChild(ig); s.appendChild(w); home.appendChild(s);
+      ig.style.borderTop='0'; ig.style.marginTop='0'; ig.style.paddingTop='0'; }
+    ['reviews','feat-home','features-home','ig-videos','prob-home','faq','switch','pricing-home','map','cases','about-home','blogs-home']
+      .forEach(id=>{ const el=document.getElementById(id); if(el) home.appendChild(el); });
+  })();
   addEventListener('hashchange',go);
 
-  /* REVEALS + count-ups */
-  let revObs=null;
+  /* REVEALS + count-ups
+     Robust reveal: content must NEVER stay hidden even if IntersectionObserver
+     doesn't fire (some embedded/iframe viewers throttle it). Strategy:
+       1) reveal anything at/near the viewport immediately,
+       2) IntersectionObserver for the on-scroll fade (nice-to-have),
+       3) a plain scroll fallback that reveals on real scrolling,
+       4) a final safety timeout so nothing can remain invisible. */
+  let revObs=null, revScrollBound=false;
+  // reveals on the ACTIVE page: those in the current main PLUS the global
+  // sections (final-cta, socials, footer) that live outside any <main>.
+  // Excludes reveals inside inactive (display:none) pages.
+  function visibleReveals(){
+    return $$('.reveal:not(.in)').filter(el=>{ const m=el.closest('main'); return !m || m.classList.contains('on'); });
+  }
+  // Any element told to reveal (.in) whose fade stalled at ~0 opacity (some
+  // embedded viewers throttle CSS transitions) is snapped visible with .force.
+  function rescueStuck(){
+    $$('.reveal.in:not(.force)').forEach(el=>{ const m=el.closest('main'); if(m&&!m.classList.contains('on'))return; if(parseFloat(getComputedStyle(el).opacity)<0.9) el.classList.add('force'); });
+  }
+  function revealNearViewport(){
+    const vh=window.innerHeight||800;
+    visibleReveals().forEach(el=>{ if(el.getBoundingClientRect().top < vh*1.1) el.classList.add('in'); });
+    clearTimeout(window.__revealRescue); window.__revealRescue=setTimeout(rescueStuck,750);
+  }
   function observeReveals(){
-    if(!revObs)revObs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revObs.unobserve(e.target);}}),{threshold:.1});
-    $$('main.on .reveal:not(.in)').forEach(el=>revObs.observe(el));
+    // above/near-the-fold shows right away (no dependence on IO timing)
+    revealNearViewport();
+    if('IntersectionObserver' in window){
+      if(!revObs)revObs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revObs.unobserve(e.target);}}),{threshold:0,rootMargin:'0px 0px -8% 0px'});
+      visibleReveals().forEach(el=>revObs.observe(el));
+    } else {
+      visibleReveals().forEach(el=>el.classList.add('in'));
+    }
+    // scroll fallback (covers viewers where IO never fires)
+    if(!revScrollBound){ revScrollBound=true; addEventListener('scroll',revealNearViewport,{passive:true}); }
+    // safety net: reveal anything on the active page still hidden, then rescue any
+    // whose fade stalled — so content can never stay invisible in a throttled viewer.
+    clearTimeout(window.__revealSafety);
+    window.__revealSafety=setTimeout(()=>{ visibleReveals().forEach(el=>el.classList.add('in')); setTimeout(rescueStuck,700); }, 1200);
     ['stat800','aStat1','aStat2'].forEach(id=>{const el=document.querySelector('main.on #'+id);if(el)new IntersectionObserver((e,o)=>{e.forEach(x=>{if(x.isIntersecting){countUp(el);o.disconnect();}})},{threshold:.5}).observe(el);});
   }
 
