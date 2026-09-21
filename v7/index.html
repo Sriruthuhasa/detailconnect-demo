@@ -678,6 +678,8 @@
   .map-wrap.has-realmap .us-fallback{display:none}
   .map-wrap .map-stats{z-index:1200}
   .leaflet-container{font-family:var(--sans)}
+  /* never let Leaflet's attribution flag SVG blow up to full size over the map */
+  .leaflet-control-attribution svg,.leaflet-attribution-flag{display:none!important}
   @media(max-width:640px){.realmap{height:400px}}
   :root[data-theme="dark"] .coverage-dots circle{fill:#ff5b50;opacity:.9}
   @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .coverage-dots circle{fill:#ff5b50;opacity:.9}}
@@ -1738,6 +1740,9 @@
     document.querySelector('#map .map-wrap').classList.add('has-realmap');
     const map=L.map(el,{scrollWheelZoom:false,zoomControl:true,attributionControl:true,minZoom:3,maxZoom:9,worldCopyJump:true}).setView([39.3,-96.5],4);
     map.zoomControl.setPosition('topright');
+    // Leaflet's default attribution includes a small Ukraine-flag SVG; global page
+    // styles were blowing it up huge over the map. Use a plain-text prefix instead.
+    map.attributionControl.setPrefix('Leaflet');
     // Esri "World Light Gray Canvas" — clean light basemap, free, no API key
     // (CartoDB's public light_all endpoint now returns key-required placeholder tiles)
     L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,attribution:'Tiles &copy; Esri'}).addTo(map);
