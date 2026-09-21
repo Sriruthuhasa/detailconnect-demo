@@ -160,6 +160,18 @@
   @media(prefers-reduced-motion:reduce){.nfloat{animation:none}}
   @media(max-width:1040px){.nf-rev{right:0}.nf-rem{left:0}}
   @media(max-width:900px){.hero .grid{grid-template-columns:1fr;gap:32px}.hero .shot{order:-1}.nf-rem{display:none}}
+  /* Phones: put the headline + download buttons FIRST (visible the moment the page
+     opens), with a more compact phone right below — so the phone, the text, and the
+     App Store / Google Play buttons are all in view without scrolling far. */
+  @media(max-width:560px){
+    .hero{padding:20px 0 30px}
+    .hero .grid{gap:20px}
+    .hero .shot{order:2}
+    .hero .shot img{width:min(225px,56%)}
+    .hero h1{margin-top:2px}
+    .hero .lede{font-size:16.5px;margin:12px 0 18px}
+    .hero-rating{margin-top:10px}
+  }
   /* keep the animated notification pop-ups on mobile too — smaller and tucked to
      the phone's corners so they still bob without causing horizontal scroll */
   @media(max-width:560px){
