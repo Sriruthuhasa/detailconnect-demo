@@ -256,6 +256,14 @@
   .fcar .fcell .tag{margin-top:16px;font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
   .fcar .fcell h3{font-size:19px;font-weight:800;margin-top:6px;letter-spacing:-.02em}
   .fcar .fcell p{color:var(--sub);font-size:14px;margin:8px auto 0;max-width:30ch}
+  /* Phones: make the feature carousel cards more compact (smaller phone shot + tighter padding) */
+  @media(max-width:560px){
+    .fcar .fcell{padding:18px 16px 18px}
+    .fcar .fcell .shot img{width:min(148px,50%)}
+    .fcar .fcell .tag{margin-top:12px}
+    .fcar .fcell h3{font-size:17.5px}
+    .fcar .fcell p{font-size:13.5px;margin-top:6px}
+  }
   .fcar-ctrl{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:2px}
   /* side arrows on the features carousel */
   .fcar-viewport{position:relative}
