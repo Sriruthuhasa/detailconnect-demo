@@ -762,6 +762,23 @@
   .prob-body ul{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-direction:column;gap:12px}
   .prob-body li{display:flex;gap:11px;color:var(--ink-2);font-size:15px;align-items:flex-start}
   @media(max-width:820px){.prob-panel{grid-template-columns:1fr;gap:26px}.prob-screens{order:-1}.prob-screens .shot:nth-child(2){margin-top:0}}
+  /* Phones: pack the 6 filter buttons into a compact 2-column grid and shrink the
+     panel, so you can tap a button AND see the resulting app screen without scrolling. */
+  @media(max-width:560px){
+    #prob-home .head{margin-bottom:0}
+    #prob-home .head h2{font-size:clamp(26px,7.2vw,32px)}
+    #prob-home .head p{font-size:15px;margin-top:8px}
+    .prob-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+    .prob-tab{padding:10px 11px;font-size:12.5px;gap:8px;box-shadow:none;justify-content:flex-start;line-height:1.15}
+    .prob-tab .pi{width:26px;height:26px;border-radius:8px}
+    .prob-tab .pi svg{width:14px;height:14px}
+    .prob-panel{padding:20px;gap:16px}
+    .prob-screens .shot img{width:min(140px,40vw)}
+    .prob-body h3{font-size:19px}
+    .prob-body>p{font-size:14px;margin-top:8px}
+    .prob-body ul{margin-top:12px;gap:9px}
+    .prob-body li{font-size:14px}
+  }
 
   /* sticky-scroll feature showcase (V7 creative features page) */
   .sticky-feat{display:grid;grid-template-columns:.82fr 1.18fr;gap:54px;align-items:start;max-width:1060px;margin:0 auto}
