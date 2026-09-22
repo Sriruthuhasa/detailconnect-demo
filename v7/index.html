@@ -52,7 +52,8 @@
   @media(max-width:560px){.tb-row{gap:10px 14px;padding:8px 0;min-height:auto;font-size:13px}.tb-left{gap:4px 16px}.tb-cta{padding:9px 18px;font-size:13px}}
   header{position:sticky;top:0;z-index:70;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid var(--line)}
   nav{display:flex;align-items:center;height:var(--nav-h);gap:14px}
-  .brand img{height:26px;width:auto}
+  .brand{flex:none}
+  .brand img{height:26px;width:auto;max-width:none}
   :root[data-theme="dark"] .brand img{filter:brightness(0) invert(1)}
   @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .brand img{filter:brightness(0) invert(1)}}
   .navlinks{display:flex;gap:14px;margin-left:2px}
@@ -329,6 +330,15 @@
   .fr-body li{display:flex;gap:11px;color:var(--ink-2);font-size:15.5px;align-items:flex-start}
   .fr-body b{font-weight:700;color:var(--ink)}
   @media(max-width:820px){.frow{grid-template-columns:1fr;gap:26px}.frow.rev .fr-shot{order:-1}}
+  /* Phones: shrink the feature-page rows (smaller phone shot, tighter spacing) */
+  @media(max-width:560px){
+    .frow{padding:26px 0;gap:16px}
+    .fr-shot .shot img{width:min(178px,52%)}
+    .fr-body h3{font-size:clamp(22px,6.2vw,28px);margin-top:6px}
+    .fr-body p{font-size:15px;margin-top:9px}
+    .fr-body ul{margin-top:13px;gap:9px}
+    .fr-body li{font-size:14.5px}
+  }
   /* subtle features animation: directional slide-in reveal + gentle float (features page) */
   .fr-shot.reveal{transform:translateX(-46px)}
   .frow.rev .fr-shot.reveal{transform:translateX(46px)}
