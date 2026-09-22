@@ -165,12 +165,13 @@
      App Store / Google Play buttons are all in view without scrolling far. */
   @media(max-width:560px){
     .hero{padding:20px 0 30px}
-    .hero .grid{gap:20px}
+    .hero .grid{gap:20px;text-align:center}
     .hero .shot{order:2}
     .hero .shot img{width:min(225px,56%)}
-    .hero h1{margin-top:2px}
-    .hero .lede{font-size:16.5px;margin:12px 0 18px}
-    .hero-rating{margin-top:10px}
+    .hero h1{margin:2px auto 0;max-width:16ch}
+    .hero .lede{font-size:16.5px;margin:12px auto 18px;max-width:40ch}
+    .hero .stores{justify-content:center}
+    .hero-rating{margin-top:10px;justify-content:center}
   }
   /* keep the animated notification pop-ups on mobile too — smaller and tucked to
      the phone's corners so they still bob without causing horizontal scroll */
@@ -181,8 +182,8 @@
     .nfloat .nt b{font-size:12px}
     .nfloat .nt small{font-size:11px}
     .nf-book{top:-10px;left:-2px}
-    .nf-rev{top:auto;bottom:2%;right:-2px}
-    .nf-rem{display:none}
+    .nf-rev{top:42%;bottom:auto;right:-2px}
+    .nf-rem{display:flex;top:auto;bottom:0;left:-2px}
   }
 
   .trust{border-block:1px solid var(--line);background:var(--soft)}
